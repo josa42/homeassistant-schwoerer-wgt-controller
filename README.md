@@ -14,68 +14,15 @@ Diese Integration fungiert als "Controller" für die [schwoerer_lueftung](https:
 
 ## Entscheidungslogik
 
-```mermaid
-flowchart TD
-    Start([Controller Update]) --> CheckLock{Heizsperre aktiv?}
-    
-    CheckLock -->|Ja| HeatOff[WP gesperrt]
-    CheckLock -->|Nein| CheckOutdoor{Außentemp < 16°C?}
-    
-    CheckOutdoor -->|Ja| HeatOn[Heizfreigabe aktiv]
-    CheckOutdoor -->|Nein| HeatOff
-    
-    HeatOn --> CheckRooms[Räume prüfen]
-    HeatOff --> CheckRooms
-    
-    subgraph Raumtemperatur ["Pro Raum"]
-        CheckRooms --> CheckWindow{Fenster offen > 1 Min?}
-        CheckWindow -->|Ja| TempWindow[12°C Fenster-Modus]
-        CheckWindow -->|Nein| CheckVacation{Urlaubsmodus?}
-        
-        CheckVacation -->|Ja| TempVacation[18°C Urlaub]
-        CheckVacation -->|Nein| CheckNight{Nacht 20:00-05:00?}
-        
-        CheckNight -->|Ja| TempNight[19°C Nacht]
-        CheckNight -->|Nein| TempNormal[20°C Normal]
-    end
-    
-    TempWindow --> SetTemp[Temperatur setzen]
-    TempVacation --> SetTemp
-    TempNight --> SetTemp
-    TempNormal --> SetTemp
-    
-    SetTemp --> CheckAux[Zusatzheizer prüfen]
-    
-    subgraph Zusatzheizer ["Zusatzheizer"]
-        CheckAux --> CheckHeatActive{Heizfreigabe aktiv?}
-        CheckHeatActive -->|Nein| AuxOff[ZH aus]
-        CheckHeatActive -->|Ja| CheckNightAux{Nacht?}
-        CheckNightAux -->|Ja| AuxEGOnly[Nur EG aktiv]
-        CheckNightAux -->|Nein| AuxAll[EG + OG aktiv]
-    end
-    
-    AuxOff --> CheckFan[Lüfterstufe]
-    AuxEGOnly --> CheckFan
-    AuxAll --> CheckFan
-    
-    subgraph Lüftung ["Lüfterstufe"]
-        CheckFan --> CheckManual{Manuell gesetzt?}
-        CheckManual -->|Ja| FanManual[Manuelle Stufe]
-        CheckManual -->|Nein| CheckVacFan{Urlaubsmodus?}
-        CheckVacFan -->|Ja| FanVac[Stufe 1]
-        CheckVacFan -->|Nein| CheckHumidity{Feuchtigkeit > 70%?}
-        CheckHumidity -->|Ja| FanHigh[Stufe 3]
-        CheckHumidity -->|Nein| CheckNightFan{Nacht?}
-        CheckNightFan -->|Ja| FanNight[Stufe 1]
-        CheckNightFan -->|Nein| FanNormal[Stufe 2]
-    end
-    
-    FanManual --> Done([Fertig])
-    FanVac --> Done
-    FanHigh --> Done
-    FanNight --> Done
-    FanNormal --> Done
-```
+Der Controller wertet bei jedem Update-Zyklus 7 Regeln aus und führt die Aktionen mit der höchsten Priorität aus:
+
+1. 🔒 **Heizsperre** (Priorität 100) - Manuelle Sperrung
+2. 🌡️ **Heizfreigabe** (Priorität 50) - Außentemperatur-basiert  
+3. 🏠 **Raumtemperatur** (Priorität 10) - Fenster → Urlaub → Nacht → Normal
+4. 🔥 **Zusatzheizer** (Priorität 20) - Bei aktiver Heizfreigabe
+5. 💨 **Lüfterstufen** (Priorität 30/100) - Automatik oder manuell
+
+**[Vollständiges Ablauf-Diagramm anzeigen →](docs/decision-logic.md)**
 
 ## Installation
 
@@ -100,95 +47,195 @@ flowchart TD
 ### Voraussetzungen
 
 - Die [schwoerer_lueftung](https://github.com/josa42/homeassistant-schwoerer-lueftung) Integration muss installiert und konfiguriert sein
-- Fenstersensoren (z.B. Zigbee) für die Fenster-Erkennung
-- Optional: `input_boolean` Helfer für Urlaubsmodus und Heizsperre
+- Optional: Fenstersensoren (z.B. Zigbee) für die Fenster-Erkennung
+- Optional: Luftfeuchtigkeitssensor für automatische Lüfterstufen-Anpassung
 
 ### Setup
 
-1. Einstellungen → Geräte & Dienste → Integration hinzufügen
-2. "Schwörer WGT Controller" suchen
-3. Die Integration erkennt automatisch die Räume aus `schwoerer_lueftung`
-4. Externe Entities konfigurieren:
-   - Urlaubsmodus Entity (`input_boolean.vacation_mode`)
-   - Heizsperre Entity (`input_boolean.heizung_sperren`)
-   - Luftfeuchtigkeitssensor (`sensor.badezimmer_luftsensor_luftfeuchtigkeit`)
-   - Lüfterstufen-Override (`input_select.heizung_lufterstufe`)
+1. **Einstellungen** → **Geräte & Dienste** → **Integration hinzufügen**
+2. **"Schwörer WGT Controller"** suchen
+3. Die Integration erkennt automatisch:
+   - Alle Räume aus `schwoerer_lueftung` (via `room_number` Attribut)
+   - Außentemperatursensor
+   - Wärmepumpen-Steuerung
+   - Lüfterstufen-Select
+4. **Testmodus** auswählen (empfohlen für ersten Start):
+   - ✅ Aktiviert: Nur Logging, keine Änderungen
+   - ❌ Deaktiviert: Controller steuert aktiv
+5. **Absenden** klicken - fertig!
 
 ### Nachträgliche Konfiguration
 
-Alle Einstellungen können über den "Konfigurieren" Button in der Integration geändert werden:
+Über **Optionen** (Zahnrad-Symbol in der Integration):
 
-- **Temperaturen**: Normal, Nacht, Urlaub, Fenster-offen (global und pro Raum)
-- **Zeiteinstellungen**: Nachtmodus Start/Ende, Fenster-Verzögerung
-- **Lüfterstufen**: Normal, Nacht, Urlaub, Hohe Luftfeuchtigkeit
-- **Schwellwerte**: Außentemperatur für Heizfreigabe, Luftfeuchtigkeit
-- **Räume**: Fenstersensor-Zuordnung, Etage (EG/OG), individuelle Temperaturen
+#### Allgemein
+- **Testmodus**: Ein/Ausschalten für sicheres Testen
+
+#### Temperaturen  
+- **Normal-Temperatur**: 20°C (Standard-Raumtemperatur)
+- **Nacht-Temperatur**: 19°C (Absenkung nachts)
+- **Urlaubs-Temperatur**: 18°C (Energie sparen bei Abwesenheit)
+- **Fenster-offen-Temperatur**: 12°C (Bei offenen Fenstern)
+
+#### Zeiteinstellungen
+- **Nachtmodus Start**: 20:00 (Beginn Nachtabsenkung)
+- **Nachtmodus Ende**: 05:00 (Ende Nachtabsenkung)
+- **Fenster-Verzögerung**: 1 Min (Wie lange Fenster offen sein muss)
+
+#### Lüfterstufen
+- **Normal**: Stufe 2
+- **Nacht**: Stufe 1
+- **Urlaub**: Stufe 1  
+- **Hohe Feuchtigkeit**: Stufe 3
+
+#### Schwellwerte
+- **Außentemperatur für Heizfreigabe**: 16°C (WP nur darunter)
+- **Luftfeuchtigkeit**: 70% (Schwelle für Lüfterstufe 3)
+- **Luftfeuchtigkeitssensor**: Optional konfigurierbar
+
+#### Räume
+Pro Raum konfigurierbar:
+- Fenstersensor-Zuordnung
+- Etage (EG/OG) - bestimmt Zusatzheizer-Steuerung
+- Individuelle Temperaturen (überschreiben global)
 
 ## Entities
 
-### Sensoren
+### Steuerung (Switches)
 
 | Entity | Beschreibung |
 |--------|--------------|
-| `sensor.controller_status` | Aktueller Status (Normal/Nacht/Urlaub/Gesperrt) |
-| `sensor.controller_explanation` | Textuelle Erklärung des aktuellen Zustands |
-| `sensor.{raum}_mode` | Modus pro Raum |
-| `sensor.{raum}_solltemperatur` | Berechnete Solltemperatur pro Raum |
-| `sensor.{raum}_begrundung` | Erklärung warum diese Temperatur gesetzt ist |
+| `switch.wgt_controller_aktiv` | Controller ein/ausschalten |
+| `switch.wgt_controller_testmodus` | Testmodus aktivieren |
+| `switch.wgt_controller_urlaubsmodus` | Urlaubsmodus (senkt Temperaturen) |
+| `switch.wgt_controller_heizsperre` | Heizung manuell sperren |
+
+### Lüftersteuerung (Select)
+
+| Entity | Beschreibung |
+|--------|--------------|
+| `select.wgt_controller_lufterstufen_override` | Manuelle Lüfterstufe (Auto, 0-4) |
+
+### Status (Sensoren)
+
+| Entity | Beschreibung |
+|--------|--------------|
+| `sensor.wgt_controller_status` | Globaler Status (Normal/Nacht/Urlaub/Gesperrt) |
+| `sensor.wgt_controller_explanation` | Textuelle Erklärung aller aktiven Regeln |
+
+### Raum-Sensoren (pro Raum)
+
+| Entity | Beschreibung |
+|--------|--------------|
+| `sensor.wgt_controller_room_N_mode` | Modus des Raums |
+| `sensor.wgt_controller_room_N_target_temp` | Berechnete Solltemperatur |
+| `sensor.wgt_controller_room_N_explanation` | Warum diese Temperatur |
 
 ### Binary Sensoren
 
 | Entity | Beschreibung |
 |--------|--------------|
-| `binary_sensor.heating_release` | Heizfreigabe aktiv |
-| `binary_sensor.cooling_release` | Kühlfreigabe aktiv |
-| `binary_sensor.night_mode` | Nachtmodus aktiv |
-| `binary_sensor.vacation_mode` | Urlaubsmodus aktiv |
+| `binary_sensor.wgt_controller_heizfreigabe` | Wärmepumpe Heizen freigegeben |
+| `binary_sensor.wgt_controller_kuhlfreigabe` | Wärmepumpe Kühlen freigegeben |
+| `binary_sensor.wgt_controller_nachtmodus` | Nachtzeit aktiv |
+| `binary_sensor.wgt_controller_urlaubsmodus` | Urlaubsmodus aktiv |
 
-### Switches
-
-| Entity | Beschreibung |
-|--------|--------------|
-| `switch.controller_enabled` | Controller ein/aus |
-| `switch.test_mode` | Testmodus (nur Logging, keine Aktionen) |
+**Hinweis**: Alle Controller-Entities sind am WGT-Gerät angehängt. Raum-spezifische Entities erscheinen unter den jeweiligen Raum-Geräten.
 
 ## Testmodus
 
-Im Testmodus werden alle Aktionen nur geloggt, aber nicht ausgeführt. So kannst du die Logik überprüfen, ohne Änderungen an deiner Anlage vorzunehmen.
+Im Testmodus werden alle Aktionen nur geloggt, aber nicht ausgeführt. **Ideal zum Testen der Logik ohne die Anlage zu beeinflussen.**
 
-Aktivieren:
-- Über den Switch `switch.test_mode`
-- Oder beim Setup im Config Flow
+### Aktivieren:
+- ✅ **Bei Setup**: Checkbox "Testmodus" aktivieren (standardmäßig an)
+- ✅ **Nachträglich**: Über `switch.wgt_controller_testmodus`
+- ✅ **In Optionen**: Allgemein → Testmodus
 
-Die Logs zeigen dann:
+### Log-Ausgabe:
 ```
-[TEST MODE] Would execute: set_room_temperature on climate.wgt_wohnzimmer = 19.0 (Reason: Nachtmodus → 19°C)
+[TEST MODE] Would execute: set_room_temperature on climate.wgt_raum_1 = 19.0 (Reason: Nachtmodus → 19.0°C)
+[TEST MODE] Would execute: set_heat_pump_heating on heat_pump = True (Reason: Außentemperatur 6.5°C < 16.0°C)
+[TEST MODE] Would execute: set_fan_level on fan = 1 (Reason: Nachtmodus → Stufe 1)
 ```
 
-## Beispiel: Erklärungssensor
+## Beispiel: Erklärungssensoren
 
-Der Erklärungssensor zeigt immer, warum der aktuelle Zustand so ist:
+Die Erklärungssensoren zeigen immer transparent, warum der aktuelle Zustand so ist:
 
-- "Nachtabsenkung aktiv (20:00-05:00) → 19°C"
-- "Fenster offen seit 3 Min → 12°C"
-- "Urlaubsmodus aktiv → 18°C"
-- "Außentemperatur 8°C < 16°C → Heizfreigabe"
+**Global** (`sensor.wgt_controller_explanation`):
+- "Nachtmodus (20:00-05:00), Außentemperatur 6.5°C < 16.0°C → Heizfreigabe, Lüfterstufe: Nachtmodus → Stufe 1"
+
+**Pro Raum** (`sensor.wgt_controller_room_1_explanation`):
+- "Nachtmodus → 19.0°C"
+- "Fenster offen seit 3 Min → 12.0°C"
+- "Urlaubsmodus → 18.0°C"
+
+## Automatisierungs-Beispiele
+
+### Benachrichtigung bei Heizfreigabe
+```yaml
+automation:
+  - alias: "WGT: Heizfreigabe geändert"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.wgt_controller_heizfreigabe
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "Heizfreigabe: {{ trigger.to_state.state }}"
+```
+
+### Urlaubsmodus automatisch aktivieren
+```yaml
+automation:
+  - alias: "WGT: Urlaubsmodus bei Abwesenheit"
+    trigger:
+      - platform: state
+        entity_id: person.owner
+        to: "not_home"
+        for:
+          hours: 2
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.wgt_controller_urlaubsmodus
+```
 
 ## Default-Werte
 
 | Einstellung | Default |
 |-------------|---------|
+| **Temperaturen** | |
 | Normal-Temperatur | 20°C |
 | Nacht-Temperatur | 19°C |
 | Urlaubs-Temperatur | 18°C |
 | Fenster-offen-Temperatur | 12°C |
-| Nachtmodus | 20:00 - 05:00 |
-| Lüfterstufe Normal | 2 |
-| Lüfterstufe Nacht/Urlaub | 1 |
-| Lüfterstufe hohe Feuchtigkeit | 3 |
-| Außentemperatur-Schwelle | 16°C |
-| Luftfeuchtigkeits-Schwelle | 70% |
+| **Zeiteinstellungen** | |
+| Nachtmodus Start | 20:00 |
+| Nachtmodus Ende | 05:00 |
 | Fenster-Verzögerung | 1 Min |
+| **Lüfterstufen** | |
+| Normal | Stufe 2 |
+| Nacht | Stufe 1 |
+| Urlaub | Stufe 1 |
+| Hohe Feuchtigkeit | Stufe 3 |
+| **Schwellwerte** | |
+| Außentemperatur für Heizfreigabe | 16°C |
+| Luftfeuchtigkeit | 70% |
+
+## Features
+
+✅ **Automatische Entdeckung**: Erkennt alle Räume aus `schwoerer_lueftung` automatisch  
+✅ **Testmodus**: Sicheres Testen ohne Änderungen an der Anlage  
+✅ **Erklärungssensoren**: Transparente Darstellung aller Entscheidungen  
+✅ **Flexible Konfiguration**: Globale und raum-spezifische Einstellungen  
+✅ **Integrierte Steuerung**: Urlaubsmodus, Heizsperre, Lüfterstufen als Teil der Integration  
+✅ **Geräte-Integration**: Alle Entities am WGT-Gerät bzw. Raum-Geräten angehängt  
+✅ **Mehrsprachig**: Deutsche und englische UI-Übersetzungen  
+
+## Entwicklung
+
+Siehe [AGENTS.md](AGENTS.md) für Beitragsrichtlinien.
 
 ## Lizenz
 
