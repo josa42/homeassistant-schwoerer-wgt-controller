@@ -381,6 +381,7 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             schema_dict[key_window] = selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     domain="binary_sensor",
+                    device_class=["window", "door", "opening"],
                     multiple=True,
                 )
             )
