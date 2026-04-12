@@ -369,14 +369,17 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
         for room_id, room_data in rooms_config.items():
             room_name = room_data.get("name", room_id)
 
-            # Window sensor
+            # Window sensors (multiple)
             schema_dict[
                 vol.Optional(
-                    f"{room_id}_window_sensor",
-                    default=room_data.get("window_sensor"),
+                    f"{room_id}_window_sensors",
+                    default=room_data.get("window_sensors", []),
                 )
             ] = selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="binary_sensor")
+                selector.EntitySelectorConfig(
+                    domain="binary_sensor",
+                    multiple=True,
+                )
             )
 
             # Humidity sensor

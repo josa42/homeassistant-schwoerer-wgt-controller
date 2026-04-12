@@ -75,7 +75,7 @@
         "title": "Raumkonfiguration",
         "description": "Konfiguriere Fenstersensoren, Luftfeuchtigkeitssensoren und Raumtyp pro Raum.",
         "data_description": {
-          "window_sensor": "Fenstersensor",
+          "window_sensors": "Fenstersensoren",
           "humidity_sensor": "Luftfeuchtigkeitssensor",
           "is_bedroom": "Ist Schlafraum"
         }

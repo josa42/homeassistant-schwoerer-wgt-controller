@@ -248,8 +248,8 @@ class RoomTemperatureRule(Rule):
             reasons: list[str] = []
 
             # Priority 1: Window open (highest)
-            window_sensor = room_config.get("window_sensor")
-            if window_sensor and self._is_window_open(window_sensor, window_delay):
+            window_sensors = room_config.get("window_sensors", [])
+            if window_sensors and self._is_any_window_open(window_sensors, window_delay):
                 target_temp = temp_window
                 mode = MODE_WINDOW_OPEN
                 reasons.append(f"Fenster offen > {window_delay} Min → {target_temp}°C")
@@ -285,6 +285,13 @@ class RoomTemperatureRule(Rule):
             )
 
         return results
+
+    def _is_any_window_open(self, sensor_entities: list[str], delay_minutes: int) -> bool:
+        """Check if any window sensor has been open for the required delay."""
+        for sensor_entity in sensor_entities:
+            if self._is_window_open(sensor_entity, delay_minutes):
+                return True
+        return False
 
     def _is_window_open(self, sensor_entity: str, delay_minutes: int) -> bool:
         """Check if window sensor has been open for the required delay."""
@@ -422,8 +429,8 @@ class FanLevelRule(Rule):
         
         for room_config in rooms_config.values():
             # Skip rooms with open windows
-            window_sensor = room_config.get("window_sensor")
-            if window_sensor and self._is_window_open(window_sensor, window_delay):
+            window_sensors = room_config.get("window_sensors", [])
+            if window_sensors and self._is_any_window_open(window_sensors, window_delay):
                 continue
             
             # Check humidity
