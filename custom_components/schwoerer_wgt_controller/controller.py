@@ -248,7 +248,7 @@ class RoomTemperatureRule(Rule):
             reasons: list[str] = []
 
             # Priority 1: Window open (highest)
-            window_sensors = room_config.get("window_sensors", [])
+            window_sensors = room_config.get("window_sensors") or []
             if window_sensors and self._is_any_window_open(window_sensors, window_delay):
                 target_temp = temp_window
                 mode = MODE_WINDOW_OPEN
@@ -429,7 +429,7 @@ class FanLevelRule(Rule):
         
         for room_config in rooms_config.values():
             # Skip rooms with open windows
-            window_sensors = room_config.get("window_sensors", [])
+            window_sensors = room_config.get("window_sensors") or []
             if window_sensors and self._is_any_window_open(window_sensors, window_delay):
                 continue
             

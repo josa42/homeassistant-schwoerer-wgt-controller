@@ -84,7 +84,7 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
         rooms_config = self.config.get("rooms", {})
         for room_config in rooms_config.values():
             # Watch all window sensors
-            window_sensors = room_config.get("window_sensors", [])
+            window_sensors = room_config.get("window_sensors") or []
             for window_sensor in window_sensors:
                 if window_sensor:
                     entities_to_watch.append(window_sensor)
