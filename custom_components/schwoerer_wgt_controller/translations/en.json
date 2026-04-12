@@ -14,8 +14,8 @@
       }
     },
     "error": {
-      "no_rooms_found": "No rooms found in schwoerer_lueftung",
-      "no_outdoor_temp_sensor": "No outdoor temperature sensor found"
+      "no_rooms_found": "No rooms found. Please set up schwoerer_lueftung integration first.",
+      "no_outdoor_temp_sensor": "No outdoor temperature sensor found. Please set up schwoerer_lueftung integration first."
     },
     "abort": {
       "already_configured": "Already configured"

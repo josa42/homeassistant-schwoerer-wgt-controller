@@ -71,6 +71,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         discovered = await discover_entities(self.hass)
         validation_errors = await validate_discovery(discovered)
 
+        # Store discovered rooms for display
+        room_list = ", ".join([r.name for r in discovered.rooms]) if discovered.rooms else "Keine"
+
         if validation_errors:
             for error in validation_errors:
                 errors["base"] = error
@@ -79,6 +82,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data_schema=vol.Schema({}),
                 errors=errors,
                 description_placeholders={
+                    "discovered_rooms": room_list,
                     "error_details": ", ".join(validation_errors)
                 },
             )

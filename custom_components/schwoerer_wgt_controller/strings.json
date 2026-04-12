@@ -14,8 +14,8 @@
       }
     },
     "error": {
-      "no_rooms_found": "Keine Räume in schwoerer_lueftung gefunden",
-      "no_outdoor_temp_sensor": "Kein Außentemperatursensor gefunden"
+      "no_rooms_found": "Keine Räume gefunden. Bitte zuerst schwoerer_lueftung Integration einrichten.",
+      "no_outdoor_temp_sensor": "Kein Außentemperatursensor gefunden. Bitte zuerst schwoerer_lueftung Integration einrichten."
     },
     "abort": {
       "already_configured": "Bereits konfiguriert"
