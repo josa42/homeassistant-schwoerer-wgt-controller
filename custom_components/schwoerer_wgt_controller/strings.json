@@ -137,20 +137,6 @@
       "fan_level_override": {
         "name": "Controller Lüfterstufen-Override"
       }
-    },
-    "binary_sensor": {
-      "heating_release": {
-        "name": "Controller Heizfreigabe"
-      },
-      "cooling_release": {
-        "name": "Controller Kühlfreigabe"
-      },
-      "night_mode": {
-        "name": "Controller Nachtmodus"
-      },
-      "vacation_mode": {
-        "name": "Controller Urlaubsmodus"
-      }
     }
   }
 }

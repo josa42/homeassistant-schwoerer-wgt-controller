@@ -139,15 +139,6 @@ Pro Raum konfigurierbar:
 | `sensor.wgt_controller_room_N_mode` | Modus des Raums (Normal/Nacht/Urlaub/Fenster) |
 | `sensor.wgt_controller_room_N_explanation` | Erklärung warum dieser Modus aktiv ist |
 
-### Binary Sensoren
-
-| Entity | Beschreibung |
-|--------|--------------|
-| `binary_sensor.wgt_controller_heizfreigabe` | Wärmepumpe Heizen freigegeben |
-| `binary_sensor.wgt_controller_kuhlfreigabe` | Wärmepumpe Kühlen freigegeben |
-| `binary_sensor.wgt_controller_nachtmodus` | Nachtzeit aktiv |
-| `binary_sensor.wgt_controller_urlaubsmodus` | Urlaubsmodus aktiv |
-
 **Hinweis**: Alle Controller-Entities sind am WGT-Gerät angehängt. Raum-spezifische Entities erscheinen unter den jeweiligen Raum-Geräten.
 
 ## Testmodus

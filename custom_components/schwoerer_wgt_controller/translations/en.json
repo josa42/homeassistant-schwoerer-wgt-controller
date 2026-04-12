@@ -138,20 +138,6 @@
       "fan_level_override": {
         "name": "Controller Fan Level Override"
       }
-    },
-    "binary_sensor": {
-      "heating_release": {
-        "name": "Controller Heating Release"
-      },
-      "cooling_release": {
-        "name": "Controller Cooling Release"
-      },
-      "night_mode": {
-        "name": "Controller Night Mode"
-      },
-      "vacation_mode": {
-        "name": "Controller Vacation Mode"
-      }
     }
   }
 }
