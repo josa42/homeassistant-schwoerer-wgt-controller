@@ -134,9 +134,9 @@ class RoomModeSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
     _attr_icon = "mdi:home-thermometer-outline"
 
     def __init__(
-        self, 
-        coordinator: WGTControllerCoordinator, 
-        room_id: str, 
+        self,
+        coordinator: WGTControllerCoordinator,
+        room_id: str,
         room_name: str,
         room_device_identifier: tuple[str, str] | None = None,
     ) -> None:
@@ -185,9 +185,9 @@ class RoomTemperatureSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
     _attr_icon = "mdi:thermometer"
 
     def __init__(
-        self, 
-        coordinator: WGTControllerCoordinator, 
-        room_id: str, 
+        self,
+        coordinator: WGTControllerCoordinator,
+        room_id: str,
         room_name: str,
         room_device_identifier: tuple[str, str] | None = None,
     ) -> None:
@@ -223,9 +223,9 @@ class RoomExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
     _attr_icon = "mdi:text-box-outline"
 
     def __init__(
-        self, 
-        coordinator: WGTControllerCoordinator, 
-        room_id: str, 
+        self,
+        coordinator: WGTControllerCoordinator,
+        room_id: str,
         room_name: str,
         room_device_identifier: tuple[str, str] | None = None,
     ) -> None:

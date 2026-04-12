@@ -46,7 +46,8 @@ class DiscoveredEntities:
 
 async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
     """Discover entities from schwoerer_lueftung integration by entity_type attribute."""
-    from homeassistant.helpers import device_registry as dr, entity_registry as er
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
 
     rooms: dict[int, DiscoveredRoom] = {}
     result = DiscoveredEntities(rooms=[])
@@ -92,7 +93,7 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
             if room_number:
                 room_name = _get_room_name(state, room_number)
                 _LOGGER.info("Found room %d: %s (%s)", room_number, room_name, entity_id)
-                
+
                 # Get room device identifier
                 room_device_id = None
                 entity_entry = ent_reg.async_get(entity_id)
@@ -104,7 +105,7 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
                                 room_device_id = identifier
                                 _LOGGER.debug("Found room device identifier: %s", identifier)
                                 break
-                
+
                 if room_number not in rooms:
                     rooms[room_number] = DiscoveredRoom(
                         number=room_number,
@@ -174,10 +175,10 @@ def _get_room_name(state: Any, room_number: int) -> str:
         for prefix in ["WGT - ", "WRT - "]:
             if name.startswith(prefix):
                 name = name[len(prefix):]
-        
+
         # Remove "Raumthermostat" suffix
         name = re.sub(r"\s*Raumthermostat\s*$", "", name, flags=re.IGNORECASE)
-        
+
         return name
 
     return f"Raum {room_number}"

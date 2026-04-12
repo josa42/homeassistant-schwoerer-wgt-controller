@@ -349,13 +349,13 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
         if user_input is not None:
             # Parse room configurations from user input
             rooms_config = self.config_entry.data.get(CONF_ROOMS, {})
-            
+
             for key, value in user_input.items():
                 if key.startswith("room_") and "_" in key[5:]:
                     parts = key.split("_", 2)
                     room_id = f"room_{parts[1]}"
                     setting = "_".join(parts[2:])
-                    
+
                     if room_id not in rooms_config:
                         rooms_config[room_id] = {}
                     rooms_config[room_id][setting] = value

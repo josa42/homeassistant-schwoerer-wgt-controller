@@ -15,7 +15,6 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
-    CONF_HUMIDITY_SENSOR_ENTITY,
     CONF_TEST_MODE,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -88,7 +87,7 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
             for window_sensor in window_sensors:
                 if window_sensor:
                     entities_to_watch.append(window_sensor)
-            
+
             humidity_sensor = room_config.get("humidity_sensor")
             if humidity_sensor:
                 entities_to_watch.append(humidity_sensor)

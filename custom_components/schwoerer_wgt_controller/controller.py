@@ -5,11 +5,9 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, time
+from datetime import UTC, datetime, time
 from enum import Enum
 from typing import TYPE_CHECKING, Any
-
-from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_FAN_LEVEL_HIGH_HUMIDITY,
@@ -20,7 +18,6 @@ from .const import (
     CONF_NIGHT_END,
     CONF_NIGHT_START,
     CONF_OUTDOOR_TEMP_HEATING_THRESHOLD,
-    CONF_ROOMS,
     CONF_TEMPERATURE_NIGHT,
     CONF_TEMPERATURE_NORMAL,
     CONF_TEMPERATURE_VACATION,
@@ -302,9 +299,8 @@ class RoomTemperatureRule(Rule):
         # Check how long the window has been open
         last_changed = sensor_state.last_changed
         if last_changed:
-            from datetime import timezone
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             open_duration = (now - last_changed).total_seconds() / 60
             return open_duration >= delay_minutes
 
@@ -317,7 +313,7 @@ class AuxiliaryHeatingRule(Rule):
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
         results: list[RuleResult] = []
         rooms_config = self.config.get("rooms", {})
-        
+
         # Get outdoor temperature threshold
         from .const import (
             CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
@@ -327,7 +323,7 @@ class AuxiliaryHeatingRule(Rule):
             CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
             DEFAULT_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
         )
-        
+
         # Check outdoor temperature
         outdoor_temp = self._get_outdoor_temp()
         outdoor_temp_low = outdoor_temp is not None and outdoor_temp < aux_temp_threshold
@@ -448,29 +444,29 @@ class FanLevelRule(Rule):
         """Check if any room has humidity above threshold (ignoring rooms with open windows)."""
         rooms_config = self.config.get("rooms", {})
         window_delay = DEFAULT_WINDOW_OPEN_DELAY_MINUTES
-        
+
         for room_config in rooms_config.values():
             # Skip rooms with open windows
             window_sensors = room_config.get("window_sensors") or []
             if window_sensors and self._is_any_window_open(window_sensors, window_delay):
                 continue
-            
+
             # Check humidity
             humidity_sensor = room_config.get("humidity_sensor")
             if not humidity_sensor:
                 continue
-            
+
             humidity_state = self.hass.states.get(humidity_sensor)
             if not humidity_state:
                 continue
-            
+
             try:
                 humidity = float(humidity_state.state)
                 if humidity > threshold:
                     return True
             except ValueError:
                 continue
-        
+
         return False
 
 

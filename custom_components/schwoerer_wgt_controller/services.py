@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -34,7 +33,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     async def handle_force_update(call: ServiceCall) -> None:
         """Handle force update service call."""
         _LOGGER.info("Force update requested")
-        for entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
+        for _entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
             if isinstance(coordinator, WGTControllerCoordinator):
                 await coordinator.async_force_update()
 

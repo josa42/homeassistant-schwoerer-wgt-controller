@@ -5,11 +5,8 @@ from __future__ import annotations
 from datetime import time
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from custom_components.schwoerer_wgt_controller.controller import (
     ActionType,
-    Controller,
     ControllerState,
     FanLevelRule,
     HeatingLockRule,
@@ -311,7 +308,7 @@ class TestFanLevelRule:
         rule = FanLevelRule(coordinator)
         state = ControllerState()
 
-        results = rule.evaluate(state)
+        rule.evaluate(state)
 
         assert state.fan_level == 2
 
@@ -327,7 +324,7 @@ class TestFanLevelRule:
         rule = FanLevelRule(coordinator)
         state = ControllerState(is_night=True)
 
-        results = rule.evaluate(state)
+        rule.evaluate(state)
 
         assert state.fan_level == 1
 
@@ -352,6 +349,6 @@ class TestFanLevelRule:
         rule = FanLevelRule(coordinator)
         state = ControllerState()
 
-        results = rule.evaluate(state)
+        rule.evaluate(state)
 
         assert state.fan_level == 3

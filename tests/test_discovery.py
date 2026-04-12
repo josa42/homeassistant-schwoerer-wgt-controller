@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from custom_components.schwoerer_wgt_controller.discovery import (
@@ -11,7 +9,6 @@ from custom_components.schwoerer_wgt_controller.discovery import (
     DiscoveredRoom,
     _extract_room_number,
     _extract_room_number_from_entity_type,
-    discover_entities,
     validate_discovery,
 )
 
