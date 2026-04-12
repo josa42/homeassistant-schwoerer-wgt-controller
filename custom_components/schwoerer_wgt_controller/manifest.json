@@ -8,5 +8,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/josa42/homeassistant-schwoerer-wgt-controller/issues",
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
