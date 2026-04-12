@@ -47,10 +47,11 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
     rooms: dict[int, DiscoveredRoom] = {}
     result = DiscoveredEntities(rooms=[])
 
-    _LOGGER.debug("Starting entity discovery by entity_type attribute")
+    all_states = hass.states.async_all()
+    _LOGGER.info("Starting entity discovery, checking %d entities", len(all_states))
 
     # Get all entities and check their entity_type attribute
-    for state in hass.states.async_all():
+    for state in all_states:
         entity_id = state.entity_id
         attrs = state.attributes
 
@@ -58,7 +59,7 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
         if not entity_type:
             continue
 
-        _LOGGER.debug("Found entity %s with entity_type: %s", entity_id, entity_type)
+        _LOGGER.info("Found entity %s with entity_type: %s", entity_id, entity_type)
 
         # Handle room climate entities
         if entity_type == ENTITY_TYPE_CLIMATE_ROOM:
@@ -107,7 +108,8 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
 
 def _extract_room_number(entity_id: str) -> int | None:
     """Extract room number from entity ID."""
-    match = re.search(r"room[_\s]?(\d+)", entity_id.lower())
+    # Match both "room_1" and "raum_1" patterns
+    match = re.search(r"(?:room|raum)[_\s]?(\d+)", entity_id.lower())
     if match:
         return int(match.group(1))
     return None
@@ -115,7 +117,8 @@ def _extract_room_number(entity_id: str) -> int | None:
 
 def _extract_room_number_from_entity_type(entity_type: str) -> int | None:
     """Extract room number from entity_type like 'auxiliary_heating_enabled_room_1'."""
-    match = re.search(r"room[_\s]?(\d+)", entity_type.lower())
+    # Match both "room_1" and "raum_1" patterns
+    match = re.search(r"(?:room|raum)[_\s]?(\d+)", entity_type.lower())
     if match:
         return int(match.group(1))
     return None
