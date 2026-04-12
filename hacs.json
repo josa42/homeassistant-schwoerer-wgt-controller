@@ -1,5 +1,7 @@
 {
   "name": "Schwörer WGT Controller",
-  "hacs": "integration",
-  "render_readme": true
+  "content_in_root": false,
+  "filename": "schwoerer_wgt_controller.zip",
+  "render_readme": true,
+  "zip_release": true
 }
