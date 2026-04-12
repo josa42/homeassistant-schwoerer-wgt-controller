@@ -1,4 +1,4 @@
-.PHONY: help venv install test lint clean dev-up dev-down dev-logs dev-restart sort-translations
+.PHONY: help venv install test lint clean dev-up dev-down dev-restart sort-translations
 
 PYTHON := $(shell command -v python3 || command -v python)
 VENV := venv
@@ -12,8 +12,8 @@ help:
 	@echo "Development:"
 	@echo "  make dev-up       - Start local Home Assistant for testing"
 	@echo "  make dev-down     - Stop local Home Assistant"
-	@echo "  make dev-logs     - Follow Home Assistant logs"
 	@echo "  make dev-restart  - Restart after code changes"
+	@echo "  View logs:          docker compose logs -f"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make venv     - Create virtual environment"
@@ -81,22 +81,18 @@ dev-up:
 	@echo "✓ Home Assistant started successfully!"
 	@echo "  Access at: http://localhost:8124"
 	@echo ""
-	@echo "View logs with: make dev-logs"
-	@echo "Stop with:      make dev-down"
+	@echo "View logs:     docker compose logs -f"
+	@echo "Stop:          make dev-down"
 
 dev-down:
 	docker compose down
-
-dev-logs:
-	@echo "Following logs (use Ctrl+C to stop or run: docker compose logs -f directly)..."
-	@bash -c 'trap exit SIGINT; docker compose logs -f'
 
 dev-restart:
 	@echo "Restarting Home Assistant (this will recreate the container)..."
 	docker compose up -d --force-recreate
 	@echo ""
 	@echo "✓ Container restarted!"
-	@echo "View logs with: make dev-logs"
+	@echo "View logs:     docker compose logs -f"
 
 sort-translations:
 	@echo "Sorting translation files..."
