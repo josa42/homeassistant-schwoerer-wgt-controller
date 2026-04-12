@@ -1,0 +1,125 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Schwörer WGT Controller",
+        "description": "Discovered rooms: {discovered_rooms}\n\nConfigure external entities for control.",
+        "data": {
+          "test_mode": "Test mode (logging only, no actions)",
+          "vacation_mode_entity": "Vacation mode entity",
+          "heating_lock_entity": "Heating lock entity",
+          "humidity_sensor_entity": "Humidity sensor",
+          "fan_level_override_entity": "Fan level override entity"
+        }
+      }
+    },
+    "error": {
+      "no_rooms_found": "No rooms found in schwoerer_lueftung",
+      "no_outdoor_temp_sensor": "No outdoor temperature sensor found"
+    },
+    "abort": {
+      "already_configured": "Already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configuration",
+        "menu_options": {
+          "temperatures": "Temperatures",
+          "timing": "Time settings",
+          "fan_levels": "Fan levels",
+          "thresholds": "Thresholds",
+          "rooms": "Room configuration"
+        }
+      },
+      "temperatures": {
+        "title": "Global temperatures",
+        "description": "Default temperatures for all rooms. Can be overridden per room.",
+        "data": {
+          "temperature_normal": "Normal temperature",
+          "temperature_night": "Night temperature",
+          "temperature_vacation": "Vacation temperature",
+          "temperature_window_open": "Window open temperature"
+        }
+      },
+      "timing": {
+        "title": "Time settings",
+        "data": {
+          "night_start": "Night mode start",
+          "night_end": "Night mode end",
+          "window_open_delay_minutes": "Window detection delay"
+        }
+      },
+      "fan_levels": {
+        "title": "Fan levels",
+        "data": {
+          "fan_level_normal": "Normal fan level",
+          "fan_level_night": "Night fan level",
+          "fan_level_vacation": "Vacation fan level",
+          "fan_level_high_humidity": "High humidity fan level"
+        }
+      },
+      "thresholds": {
+        "title": "Thresholds",
+        "data": {
+          "outdoor_temp_heating_threshold": "Outdoor temp for heating release",
+          "humidity_threshold": "Humidity threshold"
+        }
+      },
+      "rooms": {
+        "title": "Room configuration",
+        "description": "Configure window sensors and individual temperatures per room."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "controller_status": {
+        "name": "Controller Status",
+        "state": {
+          "normal": "Normal",
+          "night": "Night",
+          "vacation": "Vacation",
+          "locked": "Locked",
+          "test_mode": "Test mode",
+          "unknown": "Unknown"
+        }
+      },
+      "controller_explanation": {
+        "name": "Controller Explanation"
+      },
+      "room_mode": {
+        "name": "Mode"
+      },
+      "room_target_temperature": {
+        "name": "Target Temperature"
+      },
+      "room_explanation": {
+        "name": "Explanation"
+      }
+    },
+    "switch": {
+      "controller_enabled": {
+        "name": "Controller active"
+      },
+      "test_mode": {
+        "name": "Test mode"
+      }
+    },
+    "binary_sensor": {
+      "heating_release": {
+        "name": "Heating release"
+      },
+      "cooling_release": {
+        "name": "Cooling release"
+      },
+      "night_mode": {
+        "name": "Night mode"
+      },
+      "vacation_mode": {
+        "name": "Vacation mode"
+      }
+    }
+  }
+}

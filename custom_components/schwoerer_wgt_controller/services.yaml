@@ -1,0 +1,35 @@
+force_update:
+  name: Force Update
+  description: Force an immediate update of the controller
+  fields: {}
+
+set_room_temperature:
+  name: Set Room Temperature
+  description: Temporarily set a room temperature
+  fields:
+    room_id:
+      name: Room ID
+      description: The room identifier (e.g., room_1)
+      required: true
+      selector:
+        text:
+    temperature:
+      name: Temperature
+      description: The target temperature in °C
+      required: true
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+    duration_minutes:
+      name: Duration
+      description: Duration in minutes for the temporary override
+      default: 60
+      selector:
+        number:
+          min: 15
+          max: 480
+          step: 15
+          unit_of_measurement: "min"

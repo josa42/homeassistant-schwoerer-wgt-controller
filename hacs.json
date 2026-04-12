@@ -1,0 +1,5 @@
+{
+  "name": "Schwörer WGT Controller",
+  "hacs": "integration",
+  "render_readme": true
+}

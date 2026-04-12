@@ -1,0 +1,125 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Schwörer WGT Controller einrichten",
+        "description": "Gefundene Räume: {discovered_rooms}\n\nKonfiguriere die externen Entities für die Steuerung.",
+        "data": {
+          "test_mode": "Testmodus (nur Logging, keine Aktionen)",
+          "vacation_mode_entity": "Urlaubsmodus Entity",
+          "heating_lock_entity": "Heizsperre Entity",
+          "humidity_sensor_entity": "Luftfeuchtigkeitssensor",
+          "fan_level_override_entity": "Lüfterstufen-Override Entity"
+        }
+      }
+    },
+    "error": {
+      "no_rooms_found": "Keine Räume in schwoerer_lueftung gefunden",
+      "no_outdoor_temp_sensor": "Kein Außentemperatursensor gefunden"
+    },
+    "abort": {
+      "already_configured": "Bereits konfiguriert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Konfiguration",
+        "menu_options": {
+          "temperatures": "Temperaturen",
+          "timing": "Zeiteinstellungen",
+          "fan_levels": "Lüfterstufen",
+          "thresholds": "Schwellwerte",
+          "rooms": "Raumkonfiguration"
+        }
+      },
+      "temperatures": {
+        "title": "Globale Temperaturen",
+        "description": "Standard-Temperaturen für alle Räume. Können pro Raum überschrieben werden.",
+        "data": {
+          "temperature_normal": "Normal-Temperatur",
+          "temperature_night": "Nacht-Temperatur",
+          "temperature_vacation": "Urlaubs-Temperatur",
+          "temperature_window_open": "Fenster-offen-Temperatur"
+        }
+      },
+      "timing": {
+        "title": "Zeiteinstellungen",
+        "data": {
+          "night_start": "Nachtmodus Start",
+          "night_end": "Nachtmodus Ende",
+          "window_open_delay_minutes": "Verzögerung Fenster-Erkennung"
+        }
+      },
+      "fan_levels": {
+        "title": "Lüfterstufen",
+        "data": {
+          "fan_level_normal": "Normale Lüfterstufe",
+          "fan_level_night": "Nacht-Lüfterstufe",
+          "fan_level_vacation": "Urlaubs-Lüfterstufe",
+          "fan_level_high_humidity": "Lüfterstufe bei hoher Feuchtigkeit"
+        }
+      },
+      "thresholds": {
+        "title": "Schwellwerte",
+        "data": {
+          "outdoor_temp_heating_threshold": "Außentemperatur für Heizfreigabe",
+          "humidity_threshold": "Luftfeuchtigkeits-Schwellwert"
+        }
+      },
+      "rooms": {
+        "title": "Raumkonfiguration",
+        "description": "Konfiguriere Fenstersensoren und individuelle Temperaturen pro Raum."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "controller_status": {
+        "name": "Controller Status",
+        "state": {
+          "normal": "Normal",
+          "night": "Nacht",
+          "vacation": "Urlaub",
+          "locked": "Gesperrt",
+          "test_mode": "Testmodus",
+          "unknown": "Unbekannt"
+        }
+      },
+      "controller_explanation": {
+        "name": "Controller Begründung"
+      },
+      "room_mode": {
+        "name": "Modus"
+      },
+      "room_target_temperature": {
+        "name": "Solltemperatur"
+      },
+      "room_explanation": {
+        "name": "Begründung"
+      }
+    },
+    "switch": {
+      "controller_enabled": {
+        "name": "Controller aktiv"
+      },
+      "test_mode": {
+        "name": "Testmodus"
+      }
+    },
+    "binary_sensor": {
+      "heating_release": {
+        "name": "Heizfreigabe"
+      },
+      "cooling_release": {
+        "name": "Kühlfreigabe"
+      },
+      "night_mode": {
+        "name": "Nachtmodus"
+      },
+      "vacation_mode": {
+        "name": "Urlaubsmodus"
+      }
+    }
+  }
+}
