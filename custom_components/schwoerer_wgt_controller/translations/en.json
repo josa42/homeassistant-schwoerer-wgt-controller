@@ -75,9 +75,9 @@
         "title": "Room configuration",
         "description": "Configure window sensors, humidity sensors and room type per room.",
         "data_description": {
-          "window_sensors": "Window sensors",
-          "humidity_sensor": "Humidity sensor",
-          "is_bedroom": "Is bedroom"
+          "_window_sensors": "Window sensors",
+          "_humidity_sensor": "Humidity sensor",
+          "_is_bedroom": "Is bedroom"
         }
       }
     }

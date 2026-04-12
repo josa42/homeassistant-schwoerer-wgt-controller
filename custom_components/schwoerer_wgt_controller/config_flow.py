@@ -373,7 +373,7 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             schema_dict[
                 vol.Optional(
                     f"{room_id}_window_sensors",
-                    default=room_data.get("window_sensors", []),
+                    description={"suggested_value": room_data.get("window_sensors", [])},
                 )
             ] = selector.EntitySelector(
                 selector.EntitySelectorConfig(
@@ -386,7 +386,7 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             schema_dict[
                 vol.Optional(
                     f"{room_id}_humidity_sensor",
-                    default=room_data.get("humidity_sensor"),
+                    description={"suggested_value": room_data.get("humidity_sensor")},
                 )
             ] = selector.EntitySelector(
                 selector.EntitySelectorConfig(
