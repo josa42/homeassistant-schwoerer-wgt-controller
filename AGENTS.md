@@ -50,19 +50,31 @@ BREAKING CHANGE: All entity names now include "Controller" prefix
 - ✅ **Small, focused commits** - Each commit should represent one logical change
 - ✅ **Working state** - Each commit should leave the code in a working state
 - ✅ **Logical grouping** - Group related changes together
+- ✅ **Update README first** - Always update README.md BEFORE committing user-facing changes
 - ❌ **Avoid mixing** - Don't mix feature work with refactoring in one commit
 - ❌ **Avoid WIP commits** - Don't commit half-finished work
 
 **Examples of good commit boundaries:**
 ```bash
-# Good: Each commit is one logical change
+# Good: Each commit is one logical change, README updated with feature
 feat: add vacation mode switch
 feat: add vacation mode to controller rules
-docs: document vacation mode configuration
+docs: update README with vacation mode documentation
 
 # Bad: Everything in one commit
 feat: add complete vacation mode feature with docs
+
+# Bad: README updated separately after pushing feature
+feat: add new temperature threshold
+# ... pushed to remote ...
+docs: update README (missing from feature commit!)
 ```
+
+**Workflow for user-facing changes:**
+1. Implement the feature/fix
+2. Update README.md with the changes
+3. Commit both together (or README in separate commit immediately after)
+4. This ensures documentation is never out of sync
 
 ### Git Workflow
 
