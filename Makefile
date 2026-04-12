@@ -78,10 +78,10 @@ dev-up:
 	@mkdir -p config/themes
 	@echo "Access at: http://localhost:8124"
 	@echo ""
-	@echo "Starting container and following logs (Ctrl+C to stop following, container keeps running)..."
 	docker compose up -d --force-recreate
 	@sleep 3
-	docker compose logs -f --tail=100
+	@echo "Following logs (Ctrl+C to stop, container keeps running)..."
+	@docker compose logs -f --tail=100 || true
 
 dev-down:
 	docker compose down
@@ -93,7 +93,8 @@ dev-restart:
 	@echo "Restarting Home Assistant (this will recreate the container)..."
 	docker compose up -d --force-recreate
 	@sleep 3
-	docker compose logs -f --tail=100
+	@echo "Following logs (Ctrl+C to stop, container keeps running)..."
+	@docker compose logs -f --tail=100 || true
 
 sort-translations:
 	@echo "Sorting translation files..."
