@@ -73,7 +73,12 @@
       },
       "rooms": {
         "title": "Raumkonfiguration",
-        "description": "Konfiguriere Fenstersensoren und individuelle Temperaturen pro Raum."
+        "description": "Konfiguriere Fenstersensoren, Luftfeuchtigkeitssensoren und Raumtyp pro Raum.",
+        "data_description": {
+          "window_sensor": "Fenstersensor",
+          "humidity_sensor": "Luftfeuchtigkeitssensor",
+          "is_bedroom": "Ist Schlafraum"
+        }
       }
     }
   },
