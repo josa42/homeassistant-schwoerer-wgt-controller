@@ -6,6 +6,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -31,12 +32,19 @@ async def async_setup_entry(
         for room in coordinator.discovered.rooms:
             room_id = f"room_{room.number}"
             entities.extend([
-                RoomModeSensor(coordinator, room_id, room.name),
-                RoomTemperatureSensor(coordinator, room_id, room.name),
-                RoomExplanationSensor(coordinator, room_id, room.name),
+                RoomModeSensor(coordinator, room_id, room.name, room.device_identifier),
+                RoomTemperatureSensor(coordinator, room_id, room.name, room.device_identifier),
+                RoomExplanationSensor(coordinator, room_id, room.name, room.device_identifier),
             ])
 
     async_add_entities(entities)
+
+
+def _get_device_info(coordinator: WGTControllerCoordinator) -> DeviceInfo | None:
+    """Get device info for attaching to schwoerer_lueftung device."""
+    if coordinator.discovered and coordinator.discovered.device_identifier:
+        return DeviceInfo(identifiers={coordinator.discovered.device_identifier})
+    return None
 
 
 class GlobalStatusSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
@@ -50,6 +58,7 @@ class GlobalStatusSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEnti
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_controller_status"
+        self._attr_device_info = _get_device_info(coordinator)
 
     @property
     def native_value(self) -> str:
@@ -98,6 +107,7 @@ class GlobalExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], Senso
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_controller_explanation"
+        self._attr_device_info = _get_device_info(coordinator)
 
     @property
     def native_value(self) -> str:
@@ -124,18 +134,19 @@ class RoomModeSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
     _attr_icon = "mdi:home-thermometer-outline"
 
     def __init__(
-        self, coordinator: WGTControllerCoordinator, room_id: str, room_name: str
+        self, 
+        coordinator: WGTControllerCoordinator, 
+        room_id: str, 
+        room_name: str,
+        room_device_identifier: tuple[str, str] | None = None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._room_id = room_id
         self._room_name = room_name
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_mode"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return f"{self._room_name} Modus"
+        self._attr_has_entity_name = False  # Use full name, not device+entity
+        self._attr_name = f"WGT Controller {self._room_name} Modus"
 
     @property
     def native_value(self) -> str:
@@ -171,18 +182,19 @@ class RoomTemperatureSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
     _attr_icon = "mdi:thermometer"
 
     def __init__(
-        self, coordinator: WGTControllerCoordinator, room_id: str, room_name: str
+        self, 
+        coordinator: WGTControllerCoordinator, 
+        room_id: str, 
+        room_name: str,
+        room_device_identifier: tuple[str, str] | None = None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._room_id = room_id
         self._room_name = room_name
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_target_temp"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return f"{self._room_name} Solltemperatur"
+        self._attr_has_entity_name = False  # Use full name, not device+entity
+        self._attr_name = f"WGT Controller {self._room_name} Solltemperatur"
 
     @property
     def native_value(self) -> float | None:
@@ -205,18 +217,19 @@ class RoomExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
     _attr_icon = "mdi:text-box-outline"
 
     def __init__(
-        self, coordinator: WGTControllerCoordinator, room_id: str, room_name: str
+        self, 
+        coordinator: WGTControllerCoordinator, 
+        room_id: str, 
+        room_name: str,
+        room_device_identifier: tuple[str, str] | None = None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._room_id = room_id
         self._room_name = room_name
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_explanation"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return f"{self._room_name} Begründung"
+        self._attr_has_entity_name = False  # Use full name, not device+entity
+        self._attr_name = f"WGT Controller {self._room_name} Begründung"
 
     @property
     def native_value(self) -> str:

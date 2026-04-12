@@ -8,6 +8,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -33,6 +34,13 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
+def _get_device_info(coordinator: WGTControllerCoordinator) -> DeviceInfo | None:
+    """Get device info for attaching to schwoerer_lueftung device."""
+    if coordinator.discovered and coordinator.discovered.device_identifier:
+        return DeviceInfo(identifiers={coordinator.discovered.device_identifier})
+    return None
+
+
 class HeatingReleaseSensor(CoordinatorEntity[WGTControllerCoordinator], BinarySensorEntity):
     """Binary sensor indicating if heat pump heating is released."""
 
@@ -45,6 +53,7 @@ class HeatingReleaseSensor(CoordinatorEntity[WGTControllerCoordinator], BinarySe
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_heating_release"
+        self._attr_device_info = _get_device_info(coordinator)
 
     @property
     def is_on(self) -> bool | None:
@@ -77,6 +86,7 @@ class CoolingReleaseSensor(CoordinatorEntity[WGTControllerCoordinator], BinarySe
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_cooling_release"
+        self._attr_device_info = _get_device_info(coordinator)
 
     @property
     def is_on(self) -> bool | None:
@@ -97,6 +107,7 @@ class NightModeSensor(CoordinatorEntity[WGTControllerCoordinator], BinarySensorE
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_night_mode"
+        self._attr_device_info = _get_device_info(coordinator)
 
     @property
     def is_on(self) -> bool | None:
@@ -117,6 +128,7 @@ class VacationModeSensor(CoordinatorEntity[WGTControllerCoordinator], BinarySens
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_vacation_mode"
+        self._attr_device_info = _get_device_info(coordinator)
 
     @property
     def is_on(self) -> bool | None:

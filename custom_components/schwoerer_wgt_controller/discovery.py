@@ -29,6 +29,7 @@ class DiscoveredRoom:
     name: str
     climate_entity_id: str
     auxiliary_heating_entity_id: str | None = None
+    device_identifier: tuple[str, str] | None = None
 
 
 @dataclass
@@ -40,15 +41,22 @@ class DiscoveredEntities:
     heat_pump_cooling_entity: str | None = None
     fan_speed_entity: str | None = None
     outdoor_temp_entity: str | None = None
+    device_identifier: tuple[str, str] | None = None
 
 
 async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
     """Discover entities from schwoerer_lueftung integration by entity_type attribute."""
+    from homeassistant.helpers import device_registry as dr, entity_registry as er
+
     rooms: dict[int, DiscoveredRoom] = {}
     result = DiscoveredEntities(rooms=[])
 
     all_states = hass.states.async_all()
     _LOGGER.info("Starting entity discovery, checking %d entities", len(all_states))
+
+    # Get registries for device lookup
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
 
     # Get all entities and check their entity_type attribute
     for state in all_states:
@@ -59,26 +67,60 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
         if not entity_type:
             continue
 
-        _LOGGER.info("Found entity %s with entity_type: %s", entity_id, entity_type)
+        _LOGGER.debug("Found entity %s with entity_type: %s", entity_id, entity_type)
+
+        # Try to get device identifier from first discovered entity
+        if result.device_identifier is None:
+            entity_entry = ent_reg.async_get(entity_id)
+            if entity_entry and entity_entry.device_id:
+                device = dev_reg.async_get(entity_entry.device_id)
+                if device:
+                    # Get the schwoerer_lueftung identifier
+                    for identifier in device.identifiers:
+                        if identifier[0] == "schwoerer_lueftung":
+                            result.device_identifier = identifier
+                            _LOGGER.debug("Found device identifier: %s", identifier)
+                            break
+
+        # Get room number from attribute (preferred) or fall back to entity_id parsing
+        room_number = attrs.get("room_number")
 
         # Handle room climate entities
         if entity_type == ENTITY_TYPE_CLIMATE_ROOM:
-            room_number = _extract_room_number(entity_id)
+            if room_number is None:
+                room_number = _extract_room_number(entity_id)
             if room_number:
                 room_name = _get_room_name(state, room_number)
-                _LOGGER.debug("Found room %d: %s (%s)", room_number, room_name, entity_id)
+                _LOGGER.info("Found room %d: %s (%s)", room_number, room_name, entity_id)
+                
+                # Get room device identifier
+                room_device_id = None
+                entity_entry = ent_reg.async_get(entity_id)
+                if entity_entry and entity_entry.device_id:
+                    device = dev_reg.async_get(entity_entry.device_id)
+                    if device:
+                        for identifier in device.identifiers:
+                            if identifier[0] == "schwoerer_lueftung" and "#" in identifier[1]:
+                                room_device_id = identifier
+                                _LOGGER.debug("Found room device identifier: %s", identifier)
+                                break
+                
                 if room_number not in rooms:
                     rooms[room_number] = DiscoveredRoom(
                         number=room_number,
                         name=room_name,
                         climate_entity_id=entity_id,
+                        device_identifier=room_device_id,
                     )
                 else:
                     rooms[room_number].climate_entity_id = entity_id
+                    if room_device_id:
+                        rooms[room_number].device_identifier = room_device_id
 
         # Handle auxiliary heating entities
         elif entity_type.startswith(ENTITY_TYPE_AUXILIARY_HEATING):
-            room_number = _extract_room_number_from_entity_type(entity_type)
+            if room_number is None:
+                room_number = _extract_room_number_from_entity_type(entity_type)
             if room_number and room_number in rooms:
                 rooms[room_number].auxiliary_heating_entity_id = entity_id
 
