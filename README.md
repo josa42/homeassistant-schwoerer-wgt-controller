@@ -75,9 +75,6 @@ Der Controller wertet bei jedem Update-Zyklus 7 Regeln aus und führt die Aktion
 
 Über **Optionen** (Zahnrad-Symbol in der Integration):
 
-#### Allgemein
-- **Testmodus**: Ein/Ausschalten für sicheres Testen
-
 #### Temperaturen  
 - **Normal-Temperatur**: 20°C (Standard-Raumtemperatur)
 - **Nacht-Temperatur**: 19°C (Absenkung nachts)
@@ -145,10 +142,11 @@ Pro Raum konfigurierbar:
 
 Im Testmodus werden alle Aktionen nur geloggt, aber nicht ausgeführt. **Ideal zum Testen der Logik ohne die Anlage zu beeinflussen.**
 
-### Aktivieren:
-- ✅ **Bei Setup**: Checkbox "Testmodus" aktivieren (standardmäßig an)
+**Standardmäßig aktiviert** bei Installation für sicheres Testen!
+
+### Aktivieren/Deaktivieren:
+- ✅ **Bei Setup**: Checkbox "Testmodus" (standardmäßig aktiviert)
 - ✅ **Nachträglich**: Über `switch.wgt_controller_testmodus`
-- ✅ **In Optionen**: Allgemein → Testmodus
 
 ### Log-Ausgabe:
 ```
@@ -171,19 +169,6 @@ Die Erklärungssensoren zeigen immer transparent, warum der aktuelle Zustand so 
 
 ## Automatisierungs-Beispiele
 
-### Benachrichtigung bei Heizfreigabe
-```yaml
-automation:
-  - alias: "WGT: Heizfreigabe geändert"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.wgt_controller_heizfreigabe
-    action:
-      - service: notify.mobile_app
-        data:
-          message: "Heizfreigabe: {{ trigger.to_state.state }}"
-```
-
 ### Urlaubsmodus automatisch aktivieren
 ```yaml
 automation:
@@ -198,6 +183,19 @@ automation:
       - service: switch.turn_on
         target:
           entity_id: switch.wgt_controller_urlaubsmodus
+```
+
+### Benachrichtigung bei Raum-Temperatur-Änderung
+```yaml
+automation:
+  - alias: "WGT: Temperatur-Änderung melden"
+    trigger:
+      - platform: state
+        entity_id: sensor.wgt_controller_room_1_mode
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "Raum 1: {{ states('sensor.wgt_controller_room_1_explanation') }}"
 ```
 
 ## Default-Werte
