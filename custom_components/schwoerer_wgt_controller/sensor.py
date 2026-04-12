@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -33,7 +32,6 @@ async def async_setup_entry(
             room_id = f"room_{room.number}"
             entities.extend([
                 RoomModeSensor(coordinator, room_id, room.name, room.device_identifier),
-                RoomTemperatureSensor(coordinator, room_id, room.name, room.device_identifier),
                 RoomExplanationSensor(coordinator, room_id, room.name, room.device_identifier),
             ])
 
@@ -174,45 +172,6 @@ class RoomModeSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
                 MODE_WINDOW_OPEN: "Fenster offen",
             }
         }
-
-
-class RoomTemperatureSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
-    """Sensor showing the target temperature for a room."""
-
-    _attr_has_entity_name = True
-    _attr_translation_key = "room_target_temperature"
-    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    _attr_icon = "mdi:thermometer"
-
-    def __init__(
-        self,
-        coordinator: WGTControllerCoordinator,
-        room_id: str,
-        room_name: str,
-        room_device_identifier: tuple[str, str] | None = None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._room_id = room_id
-        self._room_name = room_name
-        self._room_device_identifier = room_device_identifier
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_target_temp"
-        self._attr_has_entity_name = False  # Use full name, not device+entity
-        self._attr_name = f"WGT Controller {self._room_name} Solltemperatur"
-        if room_device_identifier:
-            self._attr_device_info = DeviceInfo(identifiers={room_device_identifier})
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the target temperature."""
-        if not self.coordinator.data:
-            return None
-
-        room_state = self.coordinator.data.rooms.get(self._room_id)
-        if room_state:
-            return room_state.target_temperature
-
-        return None
 
 
 class RoomExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):

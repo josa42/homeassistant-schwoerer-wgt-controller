@@ -116,9 +116,6 @@
       "room_mode": {
         "name": "Controller Mode"
       },
-      "room_target_temperature": {
-        "name": "Controller Target Temperature"
-      },
       "room_explanation": {
         "name": "Controller Explanation"
       }

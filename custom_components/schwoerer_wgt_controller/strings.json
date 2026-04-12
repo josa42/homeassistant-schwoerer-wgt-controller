@@ -115,9 +115,6 @@
       "room_mode": {
         "name": "Controller Modus"
       },
-      "room_target_temperature": {
-        "name": "Controller Solltemperatur"
-      },
       "room_explanation": {
         "name": "Controller Begründung"
       }

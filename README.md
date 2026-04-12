@@ -129,9 +129,8 @@ Pro Raum konfigurierbar:
 
 | Entity | Beschreibung |
 |--------|--------------|
-| `sensor.wgt_controller_room_N_mode` | Modus des Raums |
-| `sensor.wgt_controller_room_N_target_temp` | Berechnete Solltemperatur |
-| `sensor.wgt_controller_room_N_explanation` | Warum diese Temperatur |
+| `sensor.wgt_controller_room_N_mode` | Modus des Raums (Normal/Nacht/Urlaub/Fenster) |
+| `sensor.wgt_controller_room_N_explanation` | Erklärung warum dieser Modus aktiv ist |
 
 ### Binary Sensoren
 
