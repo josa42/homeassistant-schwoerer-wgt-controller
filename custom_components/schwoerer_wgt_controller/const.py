@@ -16,7 +16,7 @@ CONF_ROOMS = "rooms"
 CONF_ROOM_NAME = "name"
 CONF_ROOM_CLIMATE_ENTITY = "climate_entity"
 CONF_ROOM_WINDOW_SENSOR = "window_sensor"
-CONF_ROOM_FLOOR = "floor"  # "eg" or "og"
+CONF_ROOM_IS_BEDROOM = "is_bedroom"
 
 # Global temperature settings
 CONF_TEMPERATURE_NORMAL = "temperature_normal"
@@ -61,10 +61,6 @@ DEFAULT_HEAT_PUMP_CHANGE_LOCKOUT_MINUTES = 30
 
 # Update interval in seconds
 DEFAULT_UPDATE_INTERVAL = 900  # 15 minutes
-
-# Floor constants
-FLOOR_EG = "eg"
-FLOOR_OG = "og"
 
 # Entity type attributes from schwoerer_lueftung
 ENTITY_TYPE_CLIMATE_ROOM = "climate_room"

@@ -40,12 +40,12 @@ flowchart TD
         CheckAux --> CheckHeatActive{Heizfreigabe aktiv?}
         CheckHeatActive -->|Nein| AuxOff[ZH aus]
         CheckHeatActive -->|Ja| CheckNightAux{Nacht?}
-        CheckNightAux -->|Ja| AuxEGOnly[Nur EG aktiv]
-        CheckNightAux -->|Nein| AuxAll[EG + OG aktiv]
+        CheckNightAux -->|Ja| AuxBedroomOff[Nur normale Räume]
+        CheckNightAux -->|Nein| AuxAll[Alle Räume aktiv]
     end
     
     AuxOff --> CheckFan[Lüfterstufe]
-    AuxEGOnly --> CheckFan
+    AuxBedroomOff --> CheckFan
     AuxAll --> CheckFan
     
     subgraph Lüftung ["Lüfterstufe"]
@@ -101,8 +101,8 @@ Pro Raum, in dieser Reihenfolge:
 
 ### Zusatzheizer-Regel (Priorität 20)
 - Nur aktiv wenn Heizfreigabe aktiv ist
-- Nachts: Nur EG-Räume
-- Tags: EG + OG-Räume
+- **Schlafräume**: Nachts deaktiviert (Energie sparen)
+- **Normale Räume**: Immer aktiv (bei Heizfreigabe)
 
 ### Lüfterstufen-Regel (Priorität 30/100)
 - **Override** (Priorität 100): Manuell via `select.wgt_controller_lufterstufen_override`

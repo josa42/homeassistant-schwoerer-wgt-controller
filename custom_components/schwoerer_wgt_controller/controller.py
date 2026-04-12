@@ -38,8 +38,6 @@ from .const import (
     DEFAULT_TEMPERATURE_VACATION,
     DEFAULT_TEMPERATURE_WINDOW_OPEN,
     DEFAULT_WINDOW_OPEN_DELAY_MINUTES,
-    FLOOR_EG,
-    FLOOR_OG,
     MODE_NIGHT,
     MODE_NORMAL,
     MODE_VACATION,
@@ -309,7 +307,7 @@ class RoomTemperatureRule(Rule):
 
 
 class AuxiliaryHeatingRule(Rule):
-    """Control auxiliary heating per floor."""
+    """Control auxiliary heating based on room type (bedroom vs normal room)."""
 
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
         results: list[RuleResult] = []
@@ -317,7 +315,7 @@ class AuxiliaryHeatingRule(Rule):
 
         for room_id, room_state in state.rooms.items():
             room_config = rooms_config.get(room_id, {})
-            floor = room_config.get("floor", FLOOR_EG)
+            is_bedroom = room_config.get("is_bedroom", False)
 
             aux_entity = room_config.get("auxiliary_heating_entity")
             if not aux_entity:
@@ -326,10 +324,10 @@ class AuxiliaryHeatingRule(Rule):
             # Auxiliary heating only when heat pump heating is enabled
             should_enable = state.heat_pump_heating_enabled
 
-            # Disable OG auxiliary heating at night
-            if floor == FLOOR_OG and state.is_night:
+            # Disable bedroom auxiliary heating at night
+            if is_bedroom and state.is_night:
                 should_enable = False
-                reason = "OG Zusatzheizer nachts deaktiviert"
+                reason = "Schlafraum: Zusatzheizer nachts deaktiviert"
             elif should_enable:
                 reason = "Zusatzheizer aktiv (Heizfreigabe)"
             else:

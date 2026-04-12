@@ -405,17 +405,10 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             # Floor assignment
             schema_dict[
                 vol.Optional(
-                    f"{room_id}_floor",
-                    default=room_data.get("floor", "eg"),
+                    f"{room_id}_is_bedroom",
+                    default=room_data.get("is_bedroom", False),
                 )
-            ] = selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        {"value": "eg", "label": "Erdgeschoss (EG)"},
-                        {"value": "og", "label": "Obergeschoss (OG)"},
-                    ]
-                )
-            )
+            ] = selector.BooleanSelector()
 
         return self.async_show_form(
             step_id="rooms",
