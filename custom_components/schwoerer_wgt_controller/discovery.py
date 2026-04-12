@@ -174,6 +174,10 @@ def _get_room_name(state: Any, room_number: int) -> str:
         for prefix in ["WGT - ", "WRT - "]:
             if name.startswith(prefix):
                 name = name[len(prefix):]
+        
+        # Remove "Raumthermostat" suffix
+        name = re.sub(r"\s*Raumthermostat\s*$", "", name, flags=re.IGNORECASE)
+        
         return name
 
     return f"Raum {room_number}"
