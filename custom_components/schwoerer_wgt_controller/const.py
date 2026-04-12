@@ -9,10 +9,7 @@ SCHWOERER_LUEFTUNG_DOMAIN = "schwoerer_lueftung"
 
 # Configuration keys
 CONF_TEST_MODE = "test_mode"
-CONF_VACATION_MODE_ENTITY = "vacation_mode_entity"
-CONF_HEATING_LOCK_ENTITY = "heating_lock_entity"
 CONF_HUMIDITY_SENSOR_ENTITY = "humidity_sensor_entity"
-CONF_FAN_LEVEL_OVERRIDE_ENTITY = "fan_level_override_entity"
 CONF_ROOMS = "rooms"
 
 # Room configuration keys

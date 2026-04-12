@@ -127,22 +127,23 @@ class HeatingLockRule(Rule):
 
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
         results: list[RuleResult] = []
-        lock_entity = self.config.get("heating_lock_entity")
 
-        if lock_entity:
-            lock_state = self.hass.states.get(lock_entity)
-            if lock_state and lock_state.state == "on":
-                state.is_heating_locked = True
-                state.global_reasons.append("Heizsperre aktiv")
-                results.append(
-                    RuleResult(
-                        action=ActionType.SET_HEAT_PUMP_HEATING,
-                        target="heat_pump",
-                        value=False,
-                        reason="Heizsperre aktiv",
-                        priority=100,
-                    )
+        # Use internal heating lock entity via coordinator reference
+        lock_switch = self.coordinator.heating_lock_switch
+        is_locked = lock_switch.is_on if lock_switch else False
+
+        if is_locked:
+            state.is_heating_locked = True
+            state.global_reasons.append("Heizsperre aktiv")
+            results.append(
+                RuleResult(
+                    action=ActionType.SET_HEAT_PUMP_HEATING,
+                    target="heat_pump",
+                    value=False,
+                    reason="Heizsperre aktiv",
+                    priority=100,
                 )
+            )
 
         return results
 
@@ -216,13 +217,13 @@ class VacationModeRule(Rule):
     """Check if vacation mode is active."""
 
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
-        vacation_entity = self.config.get("vacation_mode_entity")
+        # Use internal vacation mode entity via coordinator reference
+        vacation_switch = self.coordinator.vacation_mode_switch
+        is_vacation = vacation_switch.is_on if vacation_switch else False
 
-        if vacation_entity:
-            vacation_state = self.hass.states.get(vacation_entity)
-            if vacation_state and vacation_state.state == "on":
-                state.is_vacation = True
-                state.global_reasons.append("Urlaubsmodus aktiv")
+        if is_vacation:
+            state.is_vacation = True
+            state.global_reasons.append("Urlaubsmodus aktiv")
 
         return []
 
@@ -383,13 +384,13 @@ class FanLevelRule(Rule):
         fan_level = fan_normal
         reason = f"Normalbetrieb → Stufe {fan_level}"
 
-        # Check manual override
-        override_entity = self.config.get("fan_level_override_entity")
-        if override_entity:
-            override_state = self.hass.states.get(override_entity)
-            if override_state and override_state.state not in ("Auto", "unknown", "unavailable"):
+        # Check manual override using internal entity via coordinator reference
+        override_select = self.coordinator.fan_level_override_select
+        if override_select:
+            option = override_select.current_option
+            if option not in ("Auto", "unknown", "unavailable"):
                 try:
-                    fan_level = int(override_state.state)
+                    fan_level = int(option)
                     reason = f"Manuell gesetzt → Stufe {fan_level}"
                     state.fan_level = fan_level
                     state.global_reasons.append(reason)

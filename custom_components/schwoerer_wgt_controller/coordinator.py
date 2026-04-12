@@ -17,7 +17,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     CONF_HUMIDITY_SENSOR_ENTITY,
     CONF_TEST_MODE,
-    CONF_VACATION_MODE_ENTITY,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
@@ -44,6 +43,11 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
         self.controller: Controller | None = None
         self.last_results: list[RuleResult] = []
         self._unsub_listeners: list[Any] = []
+
+        # Internal entity references (set by entity setup)
+        self.vacation_mode_switch: Any = None
+        self.heating_lock_switch: Any = None
+        self.fan_level_override_select: Any = None
 
     @property
     def config(self) -> dict[str, Any]:
@@ -76,16 +80,6 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
         """Setup event listeners for state changes."""
         entities_to_watch: list[str] = []
 
-        # Watch vacation mode entity
-        vacation_entity = self.config.get(CONF_VACATION_MODE_ENTITY)
-        if vacation_entity:
-            entities_to_watch.append(vacation_entity)
-
-        # Watch heating lock entity
-        heating_lock = self.config.get("heating_lock_entity")
-        if heating_lock:
-            entities_to_watch.append(heating_lock)
-
         # Watch humidity sensor
         humidity_entity = self.config.get(CONF_HUMIDITY_SENSOR_ENTITY)
         if humidity_entity:
@@ -97,11 +91,6 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
             window_sensor = room_config.get("window_sensor")
             if window_sensor:
                 entities_to_watch.append(window_sensor)
-
-        # Watch fan level override
-        fan_override = self.config.get("fan_level_override_entity")
-        if fan_override:
-            entities_to_watch.append(fan_override)
 
         # Register state change listener
         if entities_to_watch:
