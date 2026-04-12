@@ -15,7 +15,6 @@ from .const import (
     CONF_FAN_LEVEL_NIGHT,
     CONF_FAN_LEVEL_NORMAL,
     CONF_FAN_LEVEL_VACATION,
-    CONF_HUMIDITY_SENSOR_ENTITY,
     CONF_HUMIDITY_THRESHOLD,
     CONF_NIGHT_END,
     CONF_NIGHT_START,
@@ -26,7 +25,6 @@ from .const import (
     CONF_TEMPERATURE_VACATION,
     CONF_TEMPERATURE_WINDOW_OPEN,
     CONF_TEST_MODE,
-    CONF_WINDOW_OPEN_DELAY_MINUTES,
     DEFAULT_FAN_LEVEL_HIGH_HUMIDITY,
     DEFAULT_FAN_LEVEL_NIGHT,
     DEFAULT_FAN_LEVEL_NORMAL,
@@ -39,7 +37,6 @@ from .const import (
     DEFAULT_TEMPERATURE_NORMAL,
     DEFAULT_TEMPERATURE_VACATION,
     DEFAULT_TEMPERATURE_WINDOW_OPEN,
-    DEFAULT_WINDOW_OPEN_DELAY_MINUTES,
     DOMAIN,
 )
 from .discovery import discover_entities, validate_discovery
@@ -248,17 +245,6 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                         CONF_NIGHT_END,
                         default=current.get(CONF_NIGHT_END, DEFAULT_NIGHT_END),
                     ): selector.TimeSelector(),
-                    vol.Optional(
-                        CONF_WINDOW_OPEN_DELAY_MINUTES,
-                        default=current.get(
-                            CONF_WINDOW_OPEN_DELAY_MINUTES,
-                            DEFAULT_WINDOW_OPEN_DELAY_MINUTES,
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=0, max=30, step=1, unit_of_measurement="min"
-                        )
-                    ),
                 }
             ),
         )
@@ -348,15 +334,6 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                             min=50, max=90, step=1, unit_of_measurement="%"
                         )
                     ),
-                    vol.Optional(
-                        CONF_HUMIDITY_SENSOR_ENTITY,
-                        description={"suggested_value": current.get(CONF_HUMIDITY_SENSOR_ENTITY)},
-                    ): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain="sensor",
-                            device_class="humidity",
-                        )
-                    ),
                 }
             ),
         )
@@ -402,7 +379,20 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                 selector.EntitySelectorConfig(domain="binary_sensor")
             )
 
-            # Floor assignment
+            # Humidity sensor
+            schema_dict[
+                vol.Optional(
+                    f"{room_id}_humidity_sensor",
+                    default=room_data.get("humidity_sensor"),
+                )
+            ] = selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="humidity",
+                )
+            )
+
+            # Is bedroom
             schema_dict[
                 vol.Optional(
                     f"{room_id}_is_bedroom",

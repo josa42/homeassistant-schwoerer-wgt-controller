@@ -37,8 +37,6 @@ CONF_FAN_LEVEL_HIGH_HUMIDITY = "fan_level_high_humidity"
 # Threshold settings
 CONF_OUTDOOR_TEMP_HEATING_THRESHOLD = "outdoor_temp_heating_threshold"
 CONF_HUMIDITY_THRESHOLD = "humidity_threshold"
-CONF_WINDOW_OPEN_DELAY_MINUTES = "window_open_delay_minutes"
-CONF_HEAT_PUMP_CHANGE_LOCKOUT_MINUTES = "heat_pump_change_lockout_minutes"
 
 # Default values
 DEFAULT_TEMPERATURE_NORMAL = 20.0

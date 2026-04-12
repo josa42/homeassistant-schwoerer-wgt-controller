@@ -20,11 +20,11 @@ from .const import (
     CONF_NIGHT_END,
     CONF_NIGHT_START,
     CONF_OUTDOOR_TEMP_HEATING_THRESHOLD,
+    CONF_ROOMS,
     CONF_TEMPERATURE_NIGHT,
     CONF_TEMPERATURE_NORMAL,
     CONF_TEMPERATURE_VACATION,
     CONF_TEMPERATURE_WINDOW_OPEN,
-    CONF_WINDOW_OPEN_DELAY_MINUTES,
     DEFAULT_FAN_LEVEL_HIGH_HUMIDITY,
     DEFAULT_FAN_LEVEL_NIGHT,
     DEFAULT_FAN_LEVEL_NORMAL,
@@ -238,9 +238,7 @@ class RoomTemperatureRule(Rule):
         temp_window = self.config.get(
             CONF_TEMPERATURE_WINDOW_OPEN, DEFAULT_TEMPERATURE_WINDOW_OPEN
         )
-        window_delay = self.config.get(
-            CONF_WINDOW_OPEN_DELAY_MINUTES, DEFAULT_WINDOW_OPEN_DELAY_MINUTES
-        )
+        window_delay = DEFAULT_WINDOW_OPEN_DELAY_MINUTES
 
         for room_id, room_state in state.rooms.items():
             room_config = rooms_config.get(room_id, {})
@@ -418,20 +416,26 @@ class FanLevelRule(Rule):
         return results
 
     def _is_humidity_high(self, threshold: float) -> bool:
-        """Check if humidity is above threshold."""
-        humidity_entity = self.config.get("humidity_sensor_entity")
-        if not humidity_entity:
-            return False
-
-        humidity_state = self.hass.states.get(humidity_entity)
-        if not humidity_state:
-            return False
-
-        try:
-            humidity = float(humidity_state.state)
-            return humidity > threshold
-        except ValueError:
-            return False
+        """Check if any room has humidity above threshold."""
+        rooms_config = self.config.get("rooms", {})
+        
+        for room_config in rooms_config.values():
+            humidity_sensor = room_config.get("humidity_sensor")
+            if not humidity_sensor:
+                continue
+            
+            humidity_state = self.hass.states.get(humidity_sensor)
+            if not humidity_state:
+                continue
+            
+            try:
+                humidity = float(humidity_state.state)
+                if humidity > threshold:
+                    return True
+            except ValueError:
+                continue
+        
+        return False
 
 
 class Controller:

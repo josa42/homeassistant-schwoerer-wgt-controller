@@ -80,17 +80,16 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
         """Setup event listeners for state changes."""
         entities_to_watch: list[str] = []
 
-        # Watch humidity sensor
-        humidity_entity = self.config.get(CONF_HUMIDITY_SENSOR_ENTITY)
-        if humidity_entity:
-            entities_to_watch.append(humidity_entity)
-
-        # Watch window sensors from room config
+        # Watch room sensors (window, humidity)
         rooms_config = self.config.get("rooms", {})
         for room_config in rooms_config.values():
             window_sensor = room_config.get("window_sensor")
             if window_sensor:
                 entities_to_watch.append(window_sensor)
+            
+            humidity_sensor = room_config.get("humidity_sensor")
+            if humidity_sensor:
+                entities_to_watch.append(humidity_sensor)
 
         # Register state change listener
         if entities_to_watch:
