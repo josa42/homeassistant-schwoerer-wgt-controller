@@ -135,6 +135,8 @@ class HeatingLockRule(Rule):
                     priority=100,
                 )
             )
+        else:
+            state.is_heating_locked = False
 
         return results
 
@@ -215,6 +217,8 @@ class VacationModeRule(Rule):
         if is_vacation:
             state.is_vacation = True
             state.global_reasons.append("Urlaubsmodus aktiv")
+        else:
+            state.is_vacation = False
 
         return []
 

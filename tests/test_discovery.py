@@ -18,17 +18,17 @@ class TestExtractRoomNumber:
 
     def test_extract_from_entity_id(self):
         """Test extracting room number from entity ID."""
-        result = _extract_room_number("climate.wgt_room_1", {})
+        result = _extract_room_number("climate.wgt_room_1")
         assert result == 1
 
     def test_extract_from_entity_id_room2(self):
         """Test extracting room number 2."""
-        result = _extract_room_number("climate.wgt_room_2_climate", {})
+        result = _extract_room_number("climate.wgt_room_2_climate")
         assert result == 2
 
     def test_no_room_number(self):
         """Test when no room number found."""
-        result = _extract_room_number("climate.wgt_main", {})
+        result = _extract_room_number("climate.wgt_main")
         assert result is None
 
 

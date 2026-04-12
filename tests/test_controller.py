@@ -78,8 +78,10 @@ class TestHeatingLockRule:
     def test_heating_locked(self):
         """Test when heating is locked."""
         coordinator = MagicMock()
-        coordinator.config = {"heating_lock_entity": "input_boolean.heating_lock"}
-        coordinator.hass.states.get.return_value = MagicMock(state="on")
+        # Mock internal heating lock switch
+        lock_switch = MagicMock()
+        lock_switch.is_on = True
+        coordinator.heating_lock_switch = lock_switch
 
         rule = HeatingLockRule(coordinator)
         state = ControllerState()
@@ -94,8 +96,10 @@ class TestHeatingLockRule:
     def test_heating_not_locked(self):
         """Test when heating is not locked."""
         coordinator = MagicMock()
-        coordinator.config = {"heating_lock_entity": "input_boolean.heating_lock"}
-        coordinator.hass.states.get.return_value = MagicMock(state="off")
+        # Mock internal heating lock switch as off
+        lock_switch = MagicMock()
+        lock_switch.is_on = False
+        coordinator.heating_lock_switch = lock_switch
 
         rule = HeatingLockRule(coordinator)
         state = ControllerState()
@@ -183,8 +187,10 @@ class TestVacationModeRule:
     def test_vacation_on(self):
         """Test when vacation mode is on."""
         coordinator = MagicMock()
-        coordinator.config = {"vacation_mode_entity": "input_boolean.vacation"}
-        coordinator.hass.states.get.return_value = MagicMock(state="on")
+        # Mock internal vacation mode switch
+        vacation_switch = MagicMock()
+        vacation_switch.is_on = True
+        coordinator.vacation_mode_switch = vacation_switch
 
         rule = VacationModeRule(coordinator)
         state = ControllerState()
@@ -196,8 +202,10 @@ class TestVacationModeRule:
     def test_vacation_off(self):
         """Test when vacation mode is off."""
         coordinator = MagicMock()
-        coordinator.config = {"vacation_mode_entity": "input_boolean.vacation"}
-        coordinator.hass.states.get.return_value = MagicMock(state="off")
+        # Mock internal vacation mode switch as off
+        vacation_switch = MagicMock()
+        vacation_switch.is_on = False
+        coordinator.vacation_mode_switch = vacation_switch
 
         rule = VacationModeRule(coordinator)
         state = ControllerState()
@@ -264,16 +272,14 @@ class TestRoomTemperatureRule:
         assert results[0].value == 19.0
         assert state.rooms["room_1"].mode == "night"
 
-    def test_room_specific_override(self):
-        """Test room-specific temperature override."""
+    def test_global_temperature_used(self):
+        """Test that global temperature is used for all rooms."""
         coordinator = MagicMock()
         coordinator.config = {
             "temperature_normal": 20.0,
             "temperature_night": 19.0,
             "rooms": {
-                "room_1": {
-                    "temperature_normal": 22.0,
-                }
+                "room_1": {}
             },
         }
 
@@ -290,7 +296,7 @@ class TestRoomTemperatureRule:
 
         results = rule.evaluate(state)
 
-        assert results[0].value == 22.0
+        assert results[0].value == 20.0
 
 
 class TestFanLevelRule:
@@ -302,8 +308,10 @@ class TestFanLevelRule:
         coordinator.config = {
             "fan_level_normal": 2,
             "fan_level_night": 1,
+            "rooms": {},
         }
-        coordinator.hass.states.get.return_value = None
+        # No manual override
+        coordinator.fan_level_override_select = None
 
         rule = FanLevelRule(coordinator)
         state = ControllerState()
@@ -318,8 +326,10 @@ class TestFanLevelRule:
         coordinator.config = {
             "fan_level_normal": 2,
             "fan_level_night": 1,
+            "rooms": {},
         }
-        coordinator.hass.states.get.return_value = None
+        # No manual override
+        coordinator.fan_level_override_select = None
 
         rule = FanLevelRule(coordinator)
         state = ControllerState(is_night=True)
@@ -335,12 +345,19 @@ class TestFanLevelRule:
             "fan_level_normal": 2,
             "fan_level_high_humidity": 3,
             "humidity_threshold": 70,
-            "humidity_sensor_entity": "sensor.humidity",
+            "rooms": {
+                "room_1": {
+                    "humidity_sensor": "sensor.room_1_humidity",
+                }
+            },
         }
+
+        # No manual override
+        coordinator.fan_level_override_select = None
 
         # Mock humidity sensor
         def get_state(entity_id):
-            if entity_id == "sensor.humidity":
+            if entity_id == "sensor.room_1_humidity":
                 return MagicMock(state="75")
             return None
 
