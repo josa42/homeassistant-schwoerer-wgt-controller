@@ -67,6 +67,7 @@
         "title": "Thresholds",
         "data": {
           "outdoor_temp_heating_threshold": "Outdoor temp for heating release",
+          "outdoor_temp_auxiliary_heating_threshold": "Outdoor temp for auxiliary heating",
           "humidity_threshold": "Humidity threshold",
           "humidity_sensor_entity": "Humidity sensor (optional)"
         }

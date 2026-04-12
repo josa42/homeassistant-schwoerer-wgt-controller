@@ -67,6 +67,7 @@
         "title": "Schwellwerte",
         "data": {
           "outdoor_temp_heating_threshold": "Außentemperatur für Heizfreigabe",
+          "outdoor_temp_auxiliary_heating_threshold": "Außentemperatur für Zusatzheizer",
           "humidity_threshold": "Luftfeuchtigkeits-Schwellwert",
           "humidity_sensor_entity": "Luftfeuchtigkeitssensor (optional)"
         }

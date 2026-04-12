@@ -18,6 +18,7 @@ from .const import (
     CONF_HUMIDITY_THRESHOLD,
     CONF_NIGHT_END,
     CONF_NIGHT_START,
+    CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
     CONF_OUTDOOR_TEMP_HEATING_THRESHOLD,
     CONF_ROOMS,
     CONF_TEMPERATURE_NIGHT,
@@ -32,6 +33,7 @@ from .const import (
     DEFAULT_HUMIDITY_THRESHOLD,
     DEFAULT_NIGHT_END,
     DEFAULT_NIGHT_START,
+    DEFAULT_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
     DEFAULT_OUTDOOR_TEMP_HEATING_THRESHOLD,
     DEFAULT_TEMPERATURE_NIGHT,
     DEFAULT_TEMPERATURE_NORMAL,
@@ -322,6 +324,17 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=25, step=0.5, unit_of_measurement="°C"
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+                        default=current.get(
+                            CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+                            DEFAULT_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=-10, max=20, step=0.5, unit_of_measurement="°C"
                         )
                     ),
                     vol.Optional(

@@ -312,11 +312,25 @@ class RoomTemperatureRule(Rule):
 
 
 class AuxiliaryHeatingRule(Rule):
-    """Control auxiliary heating based on room type (bedroom vs normal room)."""
+    """Control auxiliary heating based on room type and outdoor temperature."""
 
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
         results: list[RuleResult] = []
         rooms_config = self.config.get("rooms", {})
+        
+        # Get outdoor temperature threshold
+        from .const import (
+            CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+            DEFAULT_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+        )
+        aux_temp_threshold = self.config.get(
+            CONF_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+            DEFAULT_OUTDOOR_TEMP_AUXILIARY_HEATING_THRESHOLD,
+        )
+        
+        # Check outdoor temperature
+        outdoor_temp = self._get_outdoor_temp()
+        outdoor_temp_low = outdoor_temp is not None and outdoor_temp < aux_temp_threshold
 
         for room_id, room_state in state.rooms.items():
             room_config = rooms_config.get(room_id, {})
@@ -326,15 +340,23 @@ class AuxiliaryHeatingRule(Rule):
             if not aux_entity:
                 continue
 
-            # Auxiliary heating only when heat pump heating is enabled
-            should_enable = state.heat_pump_heating_enabled
+            # Auxiliary heating conditions:
+            # 1. Heat pump heating is enabled
+            # 2. Outdoor temperature is below threshold
+            should_enable = state.heat_pump_heating_enabled and outdoor_temp_low
 
             # Disable bedroom auxiliary heating at night
             if is_bedroom and state.is_night:
                 should_enable = False
                 reason = "Schlafraum: Zusatzheizer nachts deaktiviert"
+            elif not outdoor_temp_low:
+                should_enable = False
+                if outdoor_temp is not None:
+                    reason = f"Außentemperatur {outdoor_temp:.1f}°C ≥ {aux_temp_threshold}°C"
+                else:
+                    reason = "Außentemperatur unbekannt"
             elif should_enable:
-                reason = "Zusatzheizer aktiv (Heizfreigabe)"
+                reason = f"Zusatzheizer aktiv (AT {outdoor_temp:.1f}°C < {aux_temp_threshold}°C)"
             else:
                 reason = "Zusatzheizer aus (keine Heizfreigabe)"
 
