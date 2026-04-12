@@ -144,9 +144,12 @@ class RoomModeSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
         super().__init__(coordinator)
         self._room_id = room_id
         self._room_name = room_name
+        self._room_device_identifier = room_device_identifier
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_mode"
         self._attr_has_entity_name = False  # Use full name, not device+entity
         self._attr_name = f"WGT Controller {self._room_name} Modus"
+        if room_device_identifier:
+            self._attr_device_info = DeviceInfo(identifiers={room_device_identifier})
 
     @property
     def native_value(self) -> str:
@@ -192,9 +195,12 @@ class RoomTemperatureSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
         super().__init__(coordinator)
         self._room_id = room_id
         self._room_name = room_name
+        self._room_device_identifier = room_device_identifier
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_target_temp"
         self._attr_has_entity_name = False  # Use full name, not device+entity
         self._attr_name = f"WGT Controller {self._room_name} Solltemperatur"
+        if room_device_identifier:
+            self._attr_device_info = DeviceInfo(identifiers={room_device_identifier})
 
     @property
     def native_value(self) -> float | None:
@@ -227,9 +233,12 @@ class RoomExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
         super().__init__(coordinator)
         self._room_id = room_id
         self._room_name = room_name
+        self._room_device_identifier = room_device_identifier
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{room_id}_explanation"
         self._attr_has_entity_name = False  # Use full name, not device+entity
         self._attr_name = f"WGT Controller {self._room_name} Begründung"
+        if room_device_identifier:
+            self._attr_device_info = DeviceInfo(identifiers={room_device_identifier})
 
     @property
     def native_value(self) -> str:
