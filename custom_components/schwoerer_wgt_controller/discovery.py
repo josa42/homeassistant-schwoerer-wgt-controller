@@ -8,15 +8,14 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
 
 from .const import (
     ENTITY_TYPE_AUXILIARY_HEATING,
+    ENTITY_TYPE_CLIMATE_ROOM,
     ENTITY_TYPE_FAN_SPEED,
     ENTITY_TYPE_HEAT_PUMP_COOLING,
     ENTITY_TYPE_HEAT_PUMP_HEATING,
     ENTITY_TYPE_OUTDOOR_TEMP,
-    SCHWOERER_LUEFTUNG_DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -44,39 +43,26 @@ class DiscoveredEntities:
 
 
 async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
-    """Discover entities from schwoerer_lueftung integration."""
-    entity_reg = er.async_get(hass)
-
+    """Discover entities from schwoerer_lueftung integration by entity_type attribute."""
     rooms: dict[int, DiscoveredRoom] = {}
     result = DiscoveredEntities(rooms=[])
 
-    _LOGGER.debug("Starting entity discovery")
+    _LOGGER.debug("Starting entity discovery by entity_type attribute")
 
-    # First pass: find all schwoerer_lueftung entities by platform
-    schwoerer_entities: list[tuple[str, Any, str | None]] = []
-    
-    for entry in entity_reg.entities.values():
-        if entry.platform == SCHWOERER_LUEFTUNG_DOMAIN:
-            state = hass.states.get(entry.entity_id)
-            entity_type = state.attributes.get("entity_type") if state else None
-            schwoerer_entities.append((entry.entity_id, state, entity_type))
-            _LOGGER.debug(
-                "Found schwoerer_lueftung entity: %s (entity_type=%s)",
-                entry.entity_id, entity_type
-            )
-
-    _LOGGER.debug("Found %d schwoerer_lueftung entities", len(schwoerer_entities))
-
-    # Process entities
-    for entity_id, state, entity_type in schwoerer_entities:
-        if state is None:
-            continue
-
+    # Get all entities and check their entity_type attribute
+    for state in hass.states.async_all():
+        entity_id = state.entity_id
         attrs = state.attributes
 
-        # Handle climate entities (rooms) - they might not have entity_type attribute
-        if entity_id.startswith("climate."):
-            room_number = _extract_room_number(entity_id, attrs)
+        entity_type = attrs.get("entity_type")
+        if not entity_type:
+            continue
+
+        _LOGGER.debug("Found entity %s with entity_type: %s", entity_id, entity_type)
+
+        # Handle room climate entities
+        if entity_type == ENTITY_TYPE_CLIMATE_ROOM:
+            room_number = _extract_room_number(entity_id)
             if room_number:
                 room_name = _get_room_name(state, room_number)
                 _LOGGER.debug("Found room %d: %s (%s)", room_number, room_name, entity_id)
@@ -88,14 +74,9 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
                     )
                 else:
                     rooms[room_number].climate_entity_id = entity_id
-            continue
-
-        # For other entities, use entity_type attribute
-        if not entity_type:
-            continue
 
         # Handle auxiliary heating entities
-        if entity_type.startswith(ENTITY_TYPE_AUXILIARY_HEATING):
+        elif entity_type.startswith(ENTITY_TYPE_AUXILIARY_HEATING):
             room_number = _extract_room_number_from_entity_type(entity_type)
             if room_number and room_number in rooms:
                 rooms[room_number].auxiliary_heating_entity_id = entity_id
@@ -124,9 +105,8 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
     return result
 
 
-def _extract_room_number(entity_id: str, attrs: dict[str, Any]) -> int | None:
-    """Extract room number from entity attributes or ID."""
-    # Try to get from unique_id pattern like "xxx_room_1_climate"
+def _extract_room_number(entity_id: str) -> int | None:
+    """Extract room number from entity ID."""
     match = re.search(r"room[_\s]?(\d+)", entity_id.lower())
     if match:
         return int(match.group(1))
