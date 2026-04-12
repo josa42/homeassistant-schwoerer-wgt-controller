@@ -416,10 +416,17 @@ class FanLevelRule(Rule):
         return results
 
     def _is_humidity_high(self, threshold: float) -> bool:
-        """Check if any room has humidity above threshold."""
+        """Check if any room has humidity above threshold (ignoring rooms with open windows)."""
         rooms_config = self.config.get("rooms", {})
+        window_delay = DEFAULT_WINDOW_OPEN_DELAY_MINUTES
         
         for room_config in rooms_config.values():
+            # Skip rooms with open windows
+            window_sensor = room_config.get("window_sensor")
+            if window_sensor and self._is_window_open(window_sensor, window_delay):
+                continue
+            
+            # Check humidity
             humidity_sensor = room_config.get("humidity_sensor")
             if not humidity_sensor:
                 continue
