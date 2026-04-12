@@ -1,4 +1,3 @@
-version: '3'
 services:
   homeassistant:
     container_name: schwoerer-wgt-controller-ha-test
