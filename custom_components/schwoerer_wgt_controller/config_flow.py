@@ -142,7 +142,7 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
         """Manage the options - main menu."""
         return self.async_show_menu(
             step_id="init",
-            menu_options=["general", "temperatures", "timing", "fan_levels", "thresholds", "rooms"],
+            menu_options=["temperatures", "timing", "fan_levels", "thresholds", "rooms"],
         )
 
     async def async_step_general(
@@ -153,18 +153,9 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             options = {**self.config_entry.options, **user_input}
             return self.async_create_entry(title="", data=options)
 
-        current = self.config_entry.options
-
-        return self.async_show_form(
+        return self.async_show_menu(
             step_id="general",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_TEST_MODE,
-                        default=current.get(CONF_TEST_MODE, False),
-                    ): bool,
-                }
-            ),
+            menu_options=["temperatures", "timing", "fan_levels", "thresholds", "rooms"],
         )
 
     async def async_step_temperatures(

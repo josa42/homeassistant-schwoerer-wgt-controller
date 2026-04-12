@@ -22,18 +22,11 @@
       "init": {
         "title": "Konfiguration",
         "menu_options": {
-          "general": "Allgemein",
           "temperatures": "Temperaturen",
           "timing": "Zeiteinstellungen",
           "fan_levels": "Lüfterstufen",
           "thresholds": "Schwellwerte",
           "rooms": "Raumkonfiguration"
-        }
-      },
-      "general": {
-        "title": "Allgemeine Einstellungen",
-        "data": {
-          "test_mode": "Testmodus (nur Logging, keine Aktionen)"
         }
       },
       "temperatures": {

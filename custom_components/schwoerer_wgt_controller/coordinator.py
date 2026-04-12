@@ -57,7 +57,7 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
     @property
     def test_mode(self) -> bool:
         """Check if test mode is enabled."""
-        return self.config.get(CONF_TEST_MODE, False)
+        return self.config.get(CONF_TEST_MODE, True)  # Default to True for safety
 
     async def async_config_entry_first_refresh(self) -> None:
         """Perform first refresh and setup."""
