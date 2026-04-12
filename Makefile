@@ -77,11 +77,11 @@ dev-up:
 	@touch config/automations.yaml config/scripts.yaml config/scenes.yaml config/secrets.yaml 2>/dev/null || true
 	@mkdir -p config/themes
 	@echo "Access at: http://localhost:8124"
-	docker compose up -d
 	@echo ""
-	@echo "Waiting for Home Assistant to start..."
-	@sleep 5
-	docker compose logs -f --tail=50
+	@echo "Starting container and following logs (Ctrl+C to stop following, container keeps running)..."
+	docker compose up -d --force-recreate
+	@sleep 3
+	docker compose logs -f --tail=100
 
 dev-down:
 	docker compose down
@@ -90,10 +90,10 @@ dev-logs:
 	docker compose logs -f
 
 dev-restart:
-	@echo "Restarting Home Assistant..."
-	docker compose restart
-	@sleep 2
-	docker compose logs -f --tail=50
+	@echo "Restarting Home Assistant (this will recreate the container)..."
+	docker compose up -d --force-recreate
+	@sleep 3
+	docker compose logs -f --tail=100
 
 sort-translations:
 	@echo "Sorting translation files..."
