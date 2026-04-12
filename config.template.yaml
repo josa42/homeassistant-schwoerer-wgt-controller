@@ -1,0 +1,38 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+logger:
+  default: info
+  logs:
+    custom_components.schwoerer_wgt_controller: debug
+
+# Test helpers for the controller
+input_boolean:
+  vacation_mode:
+    name: Urlaubsmodus
+    icon: mdi:palm-tree
+  heizung_sperren:
+    name: Heizsperre
+    icon: mdi:radiator-off
+
+input_select:
+  heizung_lufterstufe:
+    name: Lüfterstufe Override
+    options:
+      - "Auto"
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+    initial: "Auto"
+    icon: mdi:fan
