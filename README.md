@@ -2,6 +2,13 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
+> [!WARNING]
+> **Persönlicher Use Case**
+> 
+> Diese Integration ist **spezifisch auf meinen Use Case zugeschnitten** und implementiert meine persönlichen Anforderungen an die WGT-Steuerung. Die Logik, Standardwerte und Features entsprechen meiner individuellen Setup-Konfiguration und sind **nicht unbedingt allgemein gültig** oder für alle Schwörer-Anlagen geeignet.
+> 
+> Nutze diese Integration als Inspiration oder Basis, aber erwarte keine universelle Lösung. Anpassungen an deine eigenen Bedürfnisse sind wahrscheinlich erforderlich.
+
 Eine Home Assistant Custom Integration zur intelligenten Steuerung der Schwörer WGT/WRT Wohnraumlüftung.
 
 Diese Integration fungiert als "Controller" für die [schwoerer_lueftung](https://github.com/josa42/homeassistant-schwoerer-lueftung) Integration und automatisiert die Heizungs- und Lüftungssteuerung basierend auf:
