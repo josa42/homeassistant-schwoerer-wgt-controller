@@ -88,7 +88,8 @@ dev-down:
 	docker compose down
 
 dev-logs:
-	docker compose logs -f
+	@echo "Following logs (use Ctrl+C to stop or run: docker compose logs -f directly)..."
+	@bash -c 'trap exit SIGINT; docker compose logs -f'
 
 dev-restart:
 	@echo "Restarting Home Assistant (this will recreate the container)..."
