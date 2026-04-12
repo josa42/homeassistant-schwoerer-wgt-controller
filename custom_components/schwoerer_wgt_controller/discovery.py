@@ -12,7 +12,6 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import (
     ENTITY_TYPE_AUXILIARY_HEATING,
-    ENTITY_TYPE_CLIMATE_ROOM,
     ENTITY_TYPE_FAN_SPEED,
     ENTITY_TYPE_HEAT_PUMP_COOLING,
     ENTITY_TYPE_HEAT_PUMP_HEATING,
@@ -51,27 +50,36 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
     rooms: dict[int, DiscoveredRoom] = {}
     result = DiscoveredEntities(rooms=[])
 
-    # Get all entities and check their attributes
-    for state in hass.states.async_all():
-        entity_id = state.entity_id
+    _LOGGER.debug("Starting entity discovery")
+
+    # First pass: find all schwoerer_lueftung entities by platform
+    schwoerer_entities: list[tuple[str, Any, str | None]] = []
+    
+    for entry in entity_reg.entities.values():
+        if entry.platform == SCHWOERER_LUEFTUNG_DOMAIN:
+            state = hass.states.get(entry.entity_id)
+            entity_type = state.attributes.get("entity_type") if state else None
+            schwoerer_entities.append((entry.entity_id, state, entity_type))
+            _LOGGER.debug(
+                "Found schwoerer_lueftung entity: %s (entity_type=%s)",
+                entry.entity_id, entity_type
+            )
+
+    _LOGGER.debug("Found %d schwoerer_lueftung entities", len(schwoerer_entities))
+
+    # Process entities
+    for entity_id, state, entity_type in schwoerer_entities:
+        if state is None:
+            continue
+
         attrs = state.attributes
 
-        # Check if entity belongs to schwoerer_lueftung
-        entry = entity_reg.async_get(entity_id)
-        if entry and entry.platform != SCHWOERER_LUEFTUNG_DOMAIN:
-            continue
-
-        entity_type = attrs.get("entity_type")
-        if not entity_type:
-            continue
-
-        _LOGGER.debug("Found entity %s with entity_type: %s", entity_id, entity_type)
-
-        # Handle room climate entities
-        if entity_type == ENTITY_TYPE_CLIMATE_ROOM:
+        # Handle climate entities (rooms) - they might not have entity_type attribute
+        if entity_id.startswith("climate."):
             room_number = _extract_room_number(entity_id, attrs)
             if room_number:
-                room_name = _get_room_name(hass, entity_id, room_number)
+                room_name = _get_room_name(state, room_number)
+                _LOGGER.debug("Found room %d: %s (%s)", room_number, room_name, entity_id)
                 if room_number not in rooms:
                     rooms[room_number] = DiscoveredRoom(
                         number=room_number,
@@ -80,9 +88,14 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
                     )
                 else:
                     rooms[room_number].climate_entity_id = entity_id
+            continue
+
+        # For other entities, use entity_type attribute
+        if not entity_type:
+            continue
 
         # Handle auxiliary heating entities
-        elif entity_type.startswith(ENTITY_TYPE_AUXILIARY_HEATING):
+        if entity_type.startswith(ENTITY_TYPE_AUXILIARY_HEATING):
             room_number = _extract_room_number_from_entity_type(entity_type)
             if room_number and room_number in rooms:
                 rooms[room_number].auxiliary_heating_entity_id = entity_id
@@ -90,14 +103,24 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
         # Handle global entities
         elif entity_type == ENTITY_TYPE_HEAT_PUMP_HEATING:
             result.heat_pump_heating_entity = entity_id
+            _LOGGER.debug("Found heat pump heating: %s", entity_id)
         elif entity_type == ENTITY_TYPE_HEAT_PUMP_COOLING:
             result.heat_pump_cooling_entity = entity_id
+            _LOGGER.debug("Found heat pump cooling: %s", entity_id)
         elif entity_type == ENTITY_TYPE_FAN_SPEED:
             result.fan_speed_entity = entity_id
+            _LOGGER.debug("Found fan speed: %s", entity_id)
         elif entity_type == ENTITY_TYPE_OUTDOOR_TEMP:
             result.outdoor_temp_entity = entity_id
+            _LOGGER.debug("Found outdoor temp: %s", entity_id)
 
     result.rooms = sorted(rooms.values(), key=lambda r: r.number)
+    _LOGGER.info(
+        "Discovery complete: %d rooms, outdoor_temp=%s, heat_pump=%s",
+        len(result.rooms),
+        result.outdoor_temp_entity is not None,
+        result.heat_pump_heating_entity is not None,
+    )
     return result
 
 
@@ -118,15 +141,14 @@ def _extract_room_number_from_entity_type(entity_type: str) -> int | None:
     return None
 
 
-def _get_room_name(hass: HomeAssistant, entity_id: str, room_number: int) -> str:
+def _get_room_name(state: Any, room_number: int) -> str:
     """Get friendly name for a room."""
-    state = hass.states.get(entity_id)
     if state and state.attributes.get("friendly_name"):
         name = state.attributes["friendly_name"]
         # Clean up common prefixes
         for prefix in ["WGT - ", "WRT - "]:
             if name.startswith(prefix):
-                name = name[len(prefix) :]
+                name = name[len(prefix):]
         return name
 
     return f"Raum {room_number}"
