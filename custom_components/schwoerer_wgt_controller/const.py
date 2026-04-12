@@ -17,10 +17,6 @@ CONF_ROOM_NAME = "name"
 CONF_ROOM_CLIMATE_ENTITY = "climate_entity"
 CONF_ROOM_WINDOW_SENSOR = "window_sensor"
 CONF_ROOM_FLOOR = "floor"  # "eg" or "og"
-CONF_ROOM_TEMPERATURE_NORMAL = "temperature_normal"
-CONF_ROOM_TEMPERATURE_NIGHT = "temperature_night"
-CONF_ROOM_TEMPERATURE_VACATION = "temperature_vacation"
-CONF_ROOM_TEMPERATURE_WINDOW_OPEN = "temperature_window_open"
 
 # Global temperature settings
 CONF_TEMPERATURE_NORMAL = "temperature_normal"

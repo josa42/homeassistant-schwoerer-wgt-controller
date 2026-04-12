@@ -417,29 +417,6 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                 )
             )
 
-            # Room-specific temperature overrides
-            schema_dict[
-                vol.Optional(
-                    f"{room_id}_temperature_normal",
-                    default=room_data.get("temperature_normal"),
-                )
-            ] = selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=10, max=30, step=0.5, unit_of_measurement="°C"
-                )
-            )
-
-            schema_dict[
-                vol.Optional(
-                    f"{room_id}_temperature_night",
-                    default=room_data.get("temperature_night"),
-                )
-            ] = selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=10, max=30, step=0.5, unit_of_measurement="°C"
-                )
-            )
-
         return self.async_show_form(
             step_id="rooms",
             data_schema=vol.Schema(schema_dict),

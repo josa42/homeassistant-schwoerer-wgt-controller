@@ -20,10 +20,6 @@ from .const import (
     CONF_NIGHT_END,
     CONF_NIGHT_START,
     CONF_OUTDOOR_TEMP_HEATING_THRESHOLD,
-    CONF_ROOM_TEMPERATURE_NIGHT,
-    CONF_ROOM_TEMPERATURE_NORMAL,
-    CONF_ROOM_TEMPERATURE_VACATION,
-    CONF_ROOM_TEMPERATURE_WINDOW_OPEN,
     CONF_TEMPERATURE_NIGHT,
     CONF_TEMPERATURE_NORMAL,
     CONF_TEMPERATURE_VACATION,
@@ -251,36 +247,26 @@ class RoomTemperatureRule(Rule):
         for room_id, room_state in state.rooms.items():
             room_config = rooms_config.get(room_id, {})
 
-            # Get room-specific temperatures or fall back to global
-            room_temp_normal = room_config.get(CONF_ROOM_TEMPERATURE_NORMAL, temp_normal)
-            room_temp_night = room_config.get(CONF_ROOM_TEMPERATURE_NIGHT, temp_night)
-            room_temp_vacation = room_config.get(
-                CONF_ROOM_TEMPERATURE_VACATION, temp_vacation
-            )
-            room_temp_window = room_config.get(
-                CONF_ROOM_TEMPERATURE_WINDOW_OPEN, temp_window
-            )
-
-            target_temp = room_temp_normal
+            target_temp = temp_normal
             mode = MODE_NORMAL
             reasons: list[str] = []
 
             # Priority 1: Window open (highest)
             window_sensor = room_config.get("window_sensor")
             if window_sensor and self._is_window_open(window_sensor, window_delay):
-                target_temp = room_temp_window
+                target_temp = temp_window
                 mode = MODE_WINDOW_OPEN
                 reasons.append(f"Fenster offen > {window_delay} Min → {target_temp}°C")
 
             # Priority 2: Vacation mode
             elif state.is_vacation:
-                target_temp = room_temp_vacation
+                target_temp = temp_vacation
                 mode = MODE_VACATION
                 reasons.append(f"Urlaubsmodus → {target_temp}°C")
 
             # Priority 3: Night mode
             elif state.is_night:
-                target_temp = room_temp_night
+                target_temp = temp_night
                 mode = MODE_NIGHT
                 reasons.append(f"Nachtmodus → {target_temp}°C")
 
