@@ -14,6 +14,7 @@ logger:
   default: info
   logs:
     custom_components.schwoerer_wgt_controller: debug
+    custom_components.schwoerer_lueftung: debug
 
 # Test helpers for the controller
 input_boolean:
@@ -36,3 +37,48 @@ input_select:
       - "4"
     initial: "Auto"
     icon: mdi:fan
+
+# Mock climate entities to simulate schwoerer_lueftung rooms
+# These are for testing only - in production, schwoerer_lueftung creates these
+template:
+  - sensor:
+      - name: "WGT Außentemperatur T10"
+        unique_id: mock_wgt_outdoor_temp
+        state: "12.5"
+        unit_of_measurement: "°C"
+        device_class: temperature
+        attributes:
+          entity_type: "temperature_t10_outdoor"
+      - name: "WGT Lüfterstufe"
+        unique_id: mock_wgt_fan_speed
+        state: "2"
+        attributes:
+          entity_type: "fan_speed"
+
+  - climate:
+      - name: "WGT Room 1 Climate"
+        unique_id: mock_wgt_room_1_climate
+        modes:
+          - "heat"
+          - "fan_only"
+        attributes:
+          entity_type: "climate_room"
+      - name: "WGT Room 2 Climate"
+        unique_id: mock_wgt_room_2_climate
+        modes:
+          - "heat"
+          - "fan_only"
+        attributes:
+          entity_type: "climate_room"
+
+  - switch:
+      - name: "WGT Heizfreigabe"
+        unique_id: mock_wgt_heat_pump_heating
+        state: "off"
+        attributes:
+          entity_type: "heat_pump_heating_enabled"
+      - name: "WGT Kühlfreigabe"
+        unique_id: mock_wgt_heat_pump_cooling
+        state: "off"
+        attributes:
+          entity_type: "heat_pump_cooling_enabled"
