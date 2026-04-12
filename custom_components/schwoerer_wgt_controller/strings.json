@@ -3,13 +3,9 @@
     "step": {
       "user": {
         "title": "Schwörer WGT Controller einrichten",
-        "description": "Gefundene Räume: {discovered_rooms}\n\nKonfiguriere die externen Entities für die Steuerung.",
+        "description": "Gefundene Räume: {discovered_rooms}\n\nKlicke auf Absenden um fortzufahren.",
         "data": {
-          "test_mode": "Testmodus (nur Logging, keine Aktionen)",
-          "vacation_mode_entity": "Urlaubsmodus Entity",
-          "heating_lock_entity": "Heizsperre Entity",
-          "humidity_sensor_entity": "Luftfeuchtigkeitssensor",
-          "fan_level_override_entity": "Lüfterstufen-Override Entity"
+          "test_mode": "Testmodus (nur Logging, keine Aktionen)"
         }
       }
     },
@@ -26,11 +22,18 @@
       "init": {
         "title": "Konfiguration",
         "menu_options": {
+          "general": "Allgemein",
           "temperatures": "Temperaturen",
           "timing": "Zeiteinstellungen",
           "fan_levels": "Lüfterstufen",
           "thresholds": "Schwellwerte",
           "rooms": "Raumkonfiguration"
+        }
+      },
+      "general": {
+        "title": "Allgemeine Einstellungen",
+        "data": {
+          "test_mode": "Testmodus (nur Logging, keine Aktionen)"
         }
       },
       "temperatures": {
@@ -64,7 +67,8 @@
         "title": "Schwellwerte",
         "data": {
           "outdoor_temp_heating_threshold": "Außentemperatur für Heizfreigabe",
-          "humidity_threshold": "Luftfeuchtigkeits-Schwellwert"
+          "humidity_threshold": "Luftfeuchtigkeits-Schwellwert",
+          "humidity_sensor_entity": "Luftfeuchtigkeitssensor (optional)"
         }
       },
       "rooms": {
@@ -90,13 +94,13 @@
         "name": "Controller Begründung"
       },
       "room_mode": {
-        "name": "Modus"
+        "name": "Controller Modus"
       },
       "room_target_temperature": {
-        "name": "Solltemperatur"
+        "name": "Controller Solltemperatur"
       },
       "room_explanation": {
-        "name": "Begründung"
+        "name": "Controller Begründung"
       }
     },
     "switch": {
@@ -104,21 +108,32 @@
         "name": "Controller aktiv"
       },
       "test_mode": {
-        "name": "Testmodus"
+        "name": "Controller Testmodus"
+      },
+      "vacation_mode_switch": {
+        "name": "Controller Urlaubsmodus"
+      },
+      "heating_lock_switch": {
+        "name": "Controller Heizsperre"
+      }
+    },
+    "select": {
+      "fan_level_override": {
+        "name": "Controller Lüfterstufen-Override"
       }
     },
     "binary_sensor": {
       "heating_release": {
-        "name": "Heizfreigabe"
+        "name": "Controller Heizfreigabe"
       },
       "cooling_release": {
-        "name": "Kühlfreigabe"
+        "name": "Controller Kühlfreigabe"
       },
       "night_mode": {
-        "name": "Nachtmodus"
+        "name": "Controller Nachtmodus"
       },
       "vacation_mode": {
-        "name": "Urlaubsmodus"
+        "name": "Controller Urlaubsmodus"
       }
     }
   }

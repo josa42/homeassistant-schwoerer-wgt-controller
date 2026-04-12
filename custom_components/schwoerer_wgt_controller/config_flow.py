@@ -26,7 +26,6 @@ from .const import (
     CONF_TEMPERATURE_VACATION,
     CONF_TEMPERATURE_WINDOW_OPEN,
     CONF_TEST_MODE,
-    CONF_VACATION_MODE_ENTITY,
     CONF_WINDOW_OPEN_DELAY_MINUTES,
     DEFAULT_FAN_LEVEL_HIGH_HUMIDITY,
     DEFAULT_FAN_LEVEL_NIGHT,
@@ -105,10 +104,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             data = {
                 CONF_TEST_MODE: user_input.get(CONF_TEST_MODE, False),
-                CONF_VACATION_MODE_ENTITY: user_input.get(CONF_VACATION_MODE_ENTITY),
-                "heating_lock_entity": user_input.get("heating_lock_entity"),
-                CONF_HUMIDITY_SENSOR_ENTITY: user_input.get(CONF_HUMIDITY_SENSOR_ENTITY),
-                "fan_level_override_entity": user_input.get("fan_level_override_entity"),
                 CONF_ROOMS: rooms_config,
             }
 
@@ -117,26 +112,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=data,
             )
 
-        # Show form
+        # Show confirmation form with test mode option
         room_list = ", ".join([r["name"] for r in self._discovered_rooms])
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_TEST_MODE, default=False): bool,
-                    vol.Optional(CONF_VACATION_MODE_ENTITY): selector.EntitySelector(
-                        selector.EntitySelectorConfig(domain="input_boolean")
-                    ),
-                    vol.Optional("heating_lock_entity"): selector.EntitySelector(
-                        selector.EntitySelectorConfig(domain="input_boolean")
-                    ),
-                    vol.Optional(CONF_HUMIDITY_SENSOR_ENTITY): selector.EntitySelector(
-                        selector.EntitySelectorConfig(domain="sensor")
-                    ),
-                    vol.Optional("fan_level_override_entity"): selector.EntitySelector(
-                        selector.EntitySelectorConfig(domain="input_select")
-                    ),
+                    vol.Optional(CONF_TEST_MODE, default=True): bool,
                 }
             ),
             description_placeholders={"discovered_rooms": room_list},
@@ -151,13 +134,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
     """Handle options flow for Schwörer WGT Controller."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-        self._current_step = "init"
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -165,7 +143,29 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options - main menu."""
         return self.async_show_menu(
             step_id="init",
-            menu_options=["temperatures", "timing", "fan_levels", "thresholds", "rooms"],
+            menu_options=["general", "temperatures", "timing", "fan_levels", "thresholds", "rooms"],
+        )
+
+    async def async_step_general(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Configure general settings."""
+        if user_input is not None:
+            options = {**self.config_entry.options, **user_input}
+            return self.async_create_entry(title="", data=options)
+
+        current = self.config_entry.options
+
+        return self.async_show_form(
+            step_id="general",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_TEST_MODE,
+                        default=current.get(CONF_TEST_MODE, False),
+                    ): bool,
+                }
+            ),
         )
 
     async def async_step_temperatures(
@@ -346,6 +346,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=50, max=90, step=1, unit_of_measurement="%"
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_HUMIDITY_SENSOR_ENTITY,
+                        description={"suggested_value": current.get(CONF_HUMIDITY_SENSOR_ENTITY)},
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="sensor",
+                            device_class="humidity",
                         )
                     ),
                 }

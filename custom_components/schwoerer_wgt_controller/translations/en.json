@@ -3,13 +3,9 @@
     "step": {
       "user": {
         "title": "Set up Schwörer WGT Controller",
-        "description": "Discovered rooms: {discovered_rooms}\n\nConfigure external entities for control.",
+        "description": "Discovered rooms: {discovered_rooms}\n\nClick submit to continue.",
         "data": {
-          "test_mode": "Test mode (logging only, no actions)",
-          "vacation_mode_entity": "Vacation mode entity",
-          "heating_lock_entity": "Heating lock entity",
-          "humidity_sensor_entity": "Humidity sensor",
-          "fan_level_override_entity": "Fan level override entity"
+          "test_mode": "Test mode (logging only, no actions)"
         }
       }
     },
@@ -26,11 +22,18 @@
       "init": {
         "title": "Configuration",
         "menu_options": {
+          "general": "General",
           "temperatures": "Temperatures",
           "timing": "Time settings",
           "fan_levels": "Fan levels",
           "thresholds": "Thresholds",
           "rooms": "Room configuration"
+        }
+      },
+      "general": {
+        "title": "General settings",
+        "data": {
+          "test_mode": "Test mode (logging only, no actions)"
         }
       },
       "temperatures": {
@@ -64,7 +67,8 @@
         "title": "Thresholds",
         "data": {
           "outdoor_temp_heating_threshold": "Outdoor temp for heating release",
-          "humidity_threshold": "Humidity threshold"
+          "humidity_threshold": "Humidity threshold",
+          "humidity_sensor_entity": "Humidity sensor (optional)"
         }
       },
       "rooms": {
@@ -90,35 +94,46 @@
         "name": "Controller Explanation"
       },
       "room_mode": {
-        "name": "Mode"
+        "name": "Controller Mode"
       },
       "room_target_temperature": {
-        "name": "Target Temperature"
+        "name": "Controller Target Temperature"
       },
       "room_explanation": {
-        "name": "Explanation"
+        "name": "Controller Explanation"
       }
     },
     "switch": {
       "controller_enabled": {
-        "name": "Controller active"
+        "name": "Controller Active"
       },
       "test_mode": {
-        "name": "Test mode"
+        "name": "Controller Test Mode"
+      },
+      "vacation_mode_switch": {
+        "name": "Controller Vacation Mode"
+      },
+      "heating_lock_switch": {
+        "name": "Controller Heating Lock"
+      }
+    },
+    "select": {
+      "fan_level_override": {
+        "name": "Controller Fan Level Override"
       }
     },
     "binary_sensor": {
       "heating_release": {
-        "name": "Heating release"
+        "name": "Controller Heating Release"
       },
       "cooling_release": {
-        "name": "Cooling release"
+        "name": "Controller Cooling Release"
       },
       "night_mode": {
-        "name": "Night mode"
+        "name": "Controller Night Mode"
       },
       "vacation_mode": {
-        "name": "Vacation mode"
+        "name": "Controller Vacation Mode"
       }
     }
   }
