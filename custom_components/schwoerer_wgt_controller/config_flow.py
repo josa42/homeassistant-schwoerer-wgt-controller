@@ -369,13 +369,16 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
         for room_id, room_data in rooms_config.items():
             room_name = room_data.get("name", room_id)
 
+            # Add room header comment for better UX
             # Window sensors (multiple)
-            schema_dict[
-                vol.Optional(
-                    f"{room_id}_window_sensors",
-                    description={"suggested_value": room_data.get("window_sensors", [])},
-                )
-            ] = selector.EntitySelector(
+            key_window = vol.Optional(
+                f"{room_id}_window_sensors",
+                description={
+                    "suggested_value": room_data.get("window_sensors", []),
+                    "name": f"{room_name} - Fenstersensoren",
+                },
+            )
+            schema_dict[key_window] = selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     domain="binary_sensor",
                     multiple=True,
@@ -383,12 +386,14 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             )
 
             # Humidity sensor
-            schema_dict[
-                vol.Optional(
-                    f"{room_id}_humidity_sensor",
-                    description={"suggested_value": room_data.get("humidity_sensor")},
-                )
-            ] = selector.EntitySelector(
+            key_humidity = vol.Optional(
+                f"{room_id}_humidity_sensor",
+                description={
+                    "suggested_value": room_data.get("humidity_sensor"),
+                    "name": f"{room_name} - Luftfeuchtigkeitssensor",
+                },
+            )
+            schema_dict[key_humidity] = selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     domain="sensor",
                     device_class="humidity",
@@ -396,12 +401,12 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
             )
 
             # Is bedroom
-            schema_dict[
-                vol.Optional(
-                    f"{room_id}_is_bedroom",
-                    default=room_data.get("is_bedroom", False),
-                )
-            ] = selector.BooleanSelector()
+            key_bedroom = vol.Optional(
+                f"{room_id}_is_bedroom",
+                description={"name": f"{room_name} - Ist Schlafraum"},
+                default=room_data.get("is_bedroom", False),
+            )
+            schema_dict[key_bedroom] = selector.BooleanSelector()
 
         return self.async_show_form(
             step_id="rooms",
