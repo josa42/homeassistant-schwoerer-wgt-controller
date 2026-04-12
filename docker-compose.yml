@@ -5,7 +5,8 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     volumes:
       - ./config:/config
-      - ./custom_components:/config/custom_components
+      - ./custom_components/schwoerer_wgt_controller:/config/custom_components/schwoerer_wgt_controller
+      - ../homeassistant-schwoerer-lueftung/custom_components/schwoerer_lueftung:/config/custom_components/schwoerer_lueftung
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
     privileged: true
