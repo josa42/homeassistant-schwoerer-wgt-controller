@@ -1,7 +1,4 @@
 {
   "name": "Schwörer WGT Controller",
-  "content_in_root": false,
-  "filename": "schwoerer_wgt_controller.zip",
-  "render_readme": true,
-  "zip_release": true
+  "homeassistant": "2024.1.0"
 }
