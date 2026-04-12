@@ -80,24 +80,26 @@ Der Controller wertet bei jedem Update-Zyklus 7 Regeln aus und führt die Aktion
 #### Zeiteinstellungen
 - **Nachtmodus Start**: 20:00 (Beginn Nachtabsenkung)
 - **Nachtmodus Ende**: 05:00 (Ende Nachtabsenkung)
-- **Fenster-Verzögerung**: 1 Min (Wie lange Fenster offen sein muss)
 
 #### Lüfterstufen
 - **Normal**: Stufe 2
 - **Nacht**: Stufe 1
 - **Urlaub**: Stufe 1  
-- **Hohe Feuchtigkeit**: Stufe 3
+- **Hohe Feuchtigkeit**: Stufe 3 (wenn Luftfeuchtigkeit in einem Raum > Schwellwert)
 
 #### Schwellwerte
-- **Außentemperatur für Heizfreigabe**: 16°C (WP nur darunter)
+- **Außentemperatur für Heizfreigabe**: 16°C (Wärmepumpe nur darunter)
+- **Außentemperatur für Zusatzheizer**: 10°C (Zusatzheizer nur darunter)
 - **Luftfeuchtigkeit**: 70% (Schwelle für Lüfterstufe 3)
-- **Luftfeuchtigkeitssensor**: Optional konfigurierbar
 
 #### Räume
 Pro Raum konfigurierbar:
-- Fenstersensor-Zuordnung
-- Etage (EG/OG) - bestimmt Zusatzheizer-Steuerung
-- Individuelle Temperaturen (überschreiben global)
+- **Fenstersensoren**: Mehrere Sensoren möglich (Türen, Fenster)
+  - Temperatur → 12°C wenn **ein** Sensor > 1 Min offen
+  - Luftfeuchtigkeit wird ignoriert bei offenen Fenstern
+- **Luftfeuchtigkeitssensor**: Optional pro Raum (z.B. Badezimmer)
+  - Wenn **ein** Raum > 70% → Lüfterstufe 3
+- **Ist Schlafraum**: Zusatzheizer nachts deaktiviert
 
 ## Entities
 
@@ -213,7 +215,7 @@ automation:
 | **Zeiteinstellungen** | |
 | Nachtmodus Start | 20:00 |
 | Nachtmodus Ende | 05:00 |
-| Fenster-Verzögerung | 1 Min |
+| Fenster-Verzögerung | 1 Min (nicht konfigurierbar) |
 | **Lüfterstufen** | |
 | Normal | Stufe 2 |
 | Nacht | Stufe 1 |
@@ -221,6 +223,7 @@ automation:
 | Hohe Feuchtigkeit | Stufe 3 |
 | **Schwellwerte** | |
 | Außentemperatur für Heizfreigabe | 16°C |
+| Außentemperatur für Zusatzheizer | 10°C |
 | Luftfeuchtigkeit | 70% |
 
 ## Features
@@ -228,8 +231,11 @@ automation:
 ✅ **Automatische Entdeckung**: Erkennt alle Räume aus `schwoerer_lueftung` automatisch  
 ✅ **Testmodus**: Sicheres Testen ohne Änderungen an der Anlage  
 ✅ **Erklärungssensoren**: Transparente Darstellung aller Entscheidungen  
-✅ **Flexible Konfiguration**: Globale und raum-spezifische Einstellungen  
+✅ **Flexible Konfiguration**: Globale Einstellungen + raum-spezifische Sensoren  
 ✅ **Integrierte Steuerung**: Urlaubsmodus, Heizsperre, Lüfterstufen als Teil der Integration  
+✅ **Mehrere Fenstersensoren**: Beliebig viele Sensoren pro Raum konfigurierbar  
+✅ **Raum-spezifische Sensoren**: Feuchtigkeit und Fenster pro Raum  
+✅ **Intelligente Lüftung**: Ignoriert Feuchtigkeit bei offenen Fenstern  
 ✅ **Geräte-Integration**: Alle Entities am WGT-Gerät bzw. Raum-Geräten angehängt  
 ✅ **Mehrsprachig**: Deutsche und englische UI-Übersetzungen  
 
