@@ -329,7 +329,7 @@ class AuxiliaryHeatingRule(Rule):
         )
 
         # Check outdoor temperature
-        outdoor_temp = self._get_outdoor_temp()
+        outdoor_temp = state.outdoor_temperature
         outdoor_temp_low = outdoor_temp is not None and outdoor_temp < aux_temp_threshold
 
         for room_id, room_state in state.rooms.items():
