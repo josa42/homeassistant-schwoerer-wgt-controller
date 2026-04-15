@@ -52,6 +52,23 @@ from .discovery import discover_entities, validate_discovery
 _LOGGER = logging.getLogger(__name__)
 
 
+def _get_device_name(hass, climate_entity_id: str | None) -> str | None:
+    """Look up the HA device name for a climate entity."""
+    if not climate_entity_id:
+        return None
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+    entity_entry = ent_reg.async_get(climate_entity_id)
+    if entity_entry and entity_entry.device_id:
+        device = dev_reg.async_get(entity_entry.device_id)
+        if device:
+            return device.name_by_user or device.name
+    return None
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Schwörer WGT Controller."""
 
@@ -61,6 +78,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self._discovered_rooms: list[dict[str, Any]] = []
         self._data: dict[str, Any] = {}
+        self._room_index: int = 0
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -129,56 +147,63 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_rooms(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Handle the room configuration step."""
+        """Handle the room configuration step (one room at a time)."""
+        room = self._discovered_rooms[self._room_index]
+        room_id = f"room_{room['number']}"
+
         if user_input is not None:
             rooms_config = self._data.get(CONF_ROOMS, {})
-
-            for key, value in user_input.items():
-                if key.startswith("room_") and "_" in key[5:]:
-                    parts = key.split("_", 2)
-                    room_id = f"room_{parts[1]}"
-                    setting = "_".join(parts[2:])
-                    if room_id not in rooms_config:
-                        rooms_config[room_id] = {}
-                    rooms_config[room_id][setting] = value
-
+            if room_id not in rooms_config:
+                rooms_config[room_id] = {}
+            rooms_config[room_id].update(
+                {
+                    "window_sensors": user_input.get("window_sensors") or [],
+                    "humidity_sensor": user_input.get("humidity_sensor"),
+                    "co2_sensor": user_input.get("co2_sensor"),
+                    "is_bedroom": user_input.get("is_bedroom", False),
+                }
+            )
             self._data[CONF_ROOMS] = rooms_config
+            self._room_index += 1
 
-            return self.async_create_entry(
-                title="Schwörer WGT Controller",
-                data=self._data,
-            )
-
-        schema_dict: dict[Any, Any] = {}
-        for room in self._discovered_rooms:
-            room_id = f"room_{room['number']}"
-
-            schema_dict[vol.Optional(f"{room_id}_window_sensors")] = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain="binary_sensor",
-                    device_class=["window", "door", "opening"],
-                    multiple=True,
+            if self._room_index >= len(self._discovered_rooms):
+                return self.async_create_entry(
+                    title="Schwörer WGT Controller",
+                    data=self._data,
                 )
-            )
-            schema_dict[vol.Optional(f"{room_id}_humidity_sensor")] = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain="sensor",
-                    device_class="humidity",
-                )
-            )
-            schema_dict[vol.Optional(f"{room_id}_co2_sensor")] = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain="sensor",
-                    device_class="carbon_dioxide",
-                )
-            )
-            schema_dict[vol.Optional(f"{room_id}_is_bedroom", default=False)] = (
-                selector.BooleanSelector()
-            )
+            return await self.async_step_rooms()
 
         return self.async_show_form(
             step_id="rooms",
-            data_schema=vol.Schema(schema_dict),
+            data_schema=vol.Schema(
+                {
+                    vol.Optional("window_sensors"): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="binary_sensor",
+                            device_class=["window", "door", "opening"],
+                            multiple=True,
+                        )
+                    ),
+                    vol.Optional("humidity_sensor"): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="sensor",
+                            device_class="humidity",
+                        )
+                    ),
+                    vol.Optional("co2_sensor"): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="sensor",
+                            device_class="carbon_dioxide",
+                        )
+                    ),
+                    vol.Optional("is_bedroom", default=False): selector.BooleanSelector(),
+                }
+            ),
+            description_placeholders={
+                "room_name": room["name"],
+                "room_number": str(self._room_index + 1),
+                "total_rooms": str(len(self._discovered_rooms)),
+            },
         )
 
     @staticmethod
@@ -192,6 +217,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
     """Handle options flow for Schwörer WGT Controller."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize the options flow."""
+        super().__init__(config_entry)
+        self._room_index: int = 0
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -428,93 +458,75 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
     async def async_step_rooms(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Configure room settings."""
-        if user_input is not None:
-            # Start from merged data+options so previous option-layer edits are preserved
-            rooms_config = {
-                **self.config_entry.data.get(CONF_ROOMS, {}),
-                **self.config_entry.options.get(CONF_ROOMS, {}),
-            }
-
-            for key, value in user_input.items():
-                if key.startswith("room_") and "_" in key[5:]:
-                    parts = key.split("_", 2)
-                    room_id = f"room_{parts[1]}"
-                    setting = "_".join(parts[2:])
-
-                    if room_id not in rooms_config:
-                        rooms_config[room_id] = {}
-                    rooms_config[room_id][setting] = value
-
-            options = {**self.config_entry.options, CONF_ROOMS: rooms_config}
-            return self.async_create_entry(title="", data=options)
-
-        # Build schema for each room
-        schema_dict: dict[Any, Any] = {}
-        rooms_config = {
+        """Configure room settings (one room at a time)."""
+        rooms_config: dict[str, Any] = {
             **self.config_entry.data.get(CONF_ROOMS, {}),
             **self.config_entry.options.get(CONF_ROOMS, {}),
         }
+        room_ids = list(rooms_config.keys())
+        total = len(room_ids)
 
-        for room_id, room_data in rooms_config.items():
-            room_name = room_data.get("name", room_id)
+        if user_input is not None:
+            room_id = room_ids[self._room_index]
+            rooms_config[room_id] = {
+                **rooms_config.get(room_id, {}),
+                "window_sensors": user_input.get("window_sensors") or [],
+                "humidity_sensor": user_input.get("humidity_sensor"),
+                "co2_sensor": user_input.get("co2_sensor"),
+                "is_bedroom": user_input.get("is_bedroom", False),
+            }
+            self._room_index += 1
 
-            # Add room header comment for better UX
-            # Window sensors (multiple)
-            key_window = vol.Optional(
-                f"{room_id}_window_sensors",
-                description={
-                    "suggested_value": room_data.get("window_sensors", []),
-                    "name": f"{room_name} - Fenstersensoren",
-                },
-            )
-            schema_dict[key_window] = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain="binary_sensor",
-                    device_class=["window", "door", "opening"],
-                    multiple=True,
-                )
-            )
+            if self._room_index >= total:
+                options = {**self.config_entry.options, CONF_ROOMS: rooms_config}
+                return self.async_create_entry(title="", data=options)
+            return await self.async_step_rooms()
 
-            # Humidity sensor
-            key_humidity = vol.Optional(
-                f"{room_id}_humidity_sensor",
-                description={
-                    "suggested_value": room_data.get("humidity_sensor"),
-                    "name": f"{room_name} - Luftfeuchtigkeitssensor",
-                },
-            )
-            schema_dict[key_humidity] = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain="sensor",
-                    device_class="humidity",
-                )
-            )
-
-            # CO2 sensor
-            key_co2 = vol.Optional(
-                f"{room_id}_co2_sensor",
-                description={
-                    "suggested_value": room_data.get("co2_sensor"),
-                    "name": f"{room_name} - CO₂-Sensor",
-                },
-            )
-            schema_dict[key_co2] = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain="sensor",
-                    device_class="carbon_dioxide",
-                )
-            )
-
-            # Is bedroom
-            key_bedroom = vol.Optional(
-                f"{room_id}_is_bedroom",
-                description={"name": f"{room_name} - Ist Schlafraum"},
-                default=room_data.get("is_bedroom", False),
-            )
-            schema_dict[key_bedroom] = selector.BooleanSelector()
+        room_id = room_ids[self._room_index]
+        room_data = rooms_config.get(room_id, {})
+        room_name = _get_device_name(self.hass, room_data.get("climate_entity_id")) or room_data.get("name") or room_id
 
         return self.async_show_form(
             step_id="rooms",
-            data_schema=vol.Schema(schema_dict),
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "window_sensors",
+                        description={"suggested_value": room_data.get("window_sensors") or []},
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="binary_sensor",
+                            device_class=["window", "door", "opening"],
+                            multiple=True,
+                        )
+                    ),
+                    vol.Optional(
+                        "humidity_sensor",
+                        description={"suggested_value": room_data.get("humidity_sensor")},
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="sensor",
+                            device_class="humidity",
+                        )
+                    ),
+                    vol.Optional(
+                        "co2_sensor",
+                        description={"suggested_value": room_data.get("co2_sensor")},
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="sensor",
+                            device_class="carbon_dioxide",
+                        )
+                    ),
+                    vol.Optional(
+                        "is_bedroom",
+                        default=room_data.get("is_bedroom", False),
+                    ): selector.BooleanSelector(),
+                }
+            ),
+            description_placeholders={
+                "room_name": room_name,
+                "room_number": str(self._room_index + 1),
+                "total_rooms": str(total),
+            },
         )

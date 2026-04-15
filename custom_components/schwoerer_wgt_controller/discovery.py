@@ -91,20 +91,23 @@ async def discover_entities(hass: HomeAssistant) -> DiscoveredEntities:
             if room_number is None:
                 room_number = _extract_room_number(entity_id)
             if room_number:
-                room_name = _get_room_name(state, room_number)
-                _LOGGER.info("Found room %d: %s (%s)", room_number, room_name, entity_id)
-
-                # Get room device identifier
+                # Get room device identifier and name from device registry
                 room_device_id = None
+                room_name = None
                 entity_entry = ent_reg.async_get(entity_id)
                 if entity_entry and entity_entry.device_id:
                     device = dev_reg.async_get(entity_entry.device_id)
                     if device:
+                        room_name = device.name_by_user or device.name
                         for identifier in device.identifiers:
                             if identifier[0] == "schwoerer_lueftung" and "#" in identifier[1]:
                                 room_device_id = identifier
                                 _LOGGER.debug("Found room device identifier: %s", identifier)
                                 break
+
+                if not room_name:
+                    room_name = _get_room_name(state, room_number)
+                _LOGGER.info("Found room %d: %s (%s)", room_number, room_name, entity_id)
 
                 if room_number not in rooms:
                     rooms[room_number] = DiscoveredRoom(
