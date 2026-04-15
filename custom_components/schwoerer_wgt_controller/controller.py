@@ -10,6 +10,9 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from .const import (
+    CONF_CO2_HIGH_DELAY_MINUTES,
+    CONF_CO2_THRESHOLD,
+    CONF_FAN_LEVEL_HIGH_CO2,
     CONF_FAN_LEVEL_HIGH_HUMIDITY,
     CONF_FAN_LEVEL_NIGHT,
     CONF_FAN_LEVEL_NORMAL,
@@ -22,6 +25,9 @@ from .const import (
     CONF_TEMPERATURE_NORMAL,
     CONF_TEMPERATURE_VACATION,
     CONF_TEMPERATURE_WINDOW_OPEN,
+    DEFAULT_CO2_HIGH_DELAY_MINUTES,
+    DEFAULT_CO2_THRESHOLD,
+    DEFAULT_FAN_LEVEL_HIGH_CO2,
     DEFAULT_FAN_LEVEL_HIGH_HUMIDITY,
     DEFAULT_FAN_LEVEL_NIGHT,
     DEFAULT_FAN_LEVEL_NORMAL,
@@ -376,6 +382,10 @@ class AuxiliaryHeatingRule(Rule):
 class FanLevelRule(Rule):
     """Control fan level based on conditions."""
 
+    def __init__(self, coordinator: WGTControllerCoordinator) -> None:
+        super().__init__(coordinator)
+        self._co2_high_since: dict[str, datetime | None] = {}
+
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
         results: list[RuleResult] = []
 
@@ -386,9 +396,12 @@ class FanLevelRule(Rule):
         fan_humidity = self.config.get(
             CONF_FAN_LEVEL_HIGH_HUMIDITY, DEFAULT_FAN_LEVEL_HIGH_HUMIDITY
         )
+        fan_co2 = self.config.get(CONF_FAN_LEVEL_HIGH_CO2, DEFAULT_FAN_LEVEL_HIGH_CO2)
         humidity_threshold = self.config.get(
             CONF_HUMIDITY_THRESHOLD, DEFAULT_HUMIDITY_THRESHOLD
         )
+        co2_threshold = self.config.get(CONF_CO2_THRESHOLD, DEFAULT_CO2_THRESHOLD)
+        co2_delay = self.config.get(CONF_CO2_HIGH_DELAY_MINUTES, DEFAULT_CO2_HIGH_DELAY_MINUTES)
 
         fan_level = fan_normal
         reason = f"Normalbetrieb → Stufe {fan_level}"
@@ -416,8 +429,11 @@ class FanLevelRule(Rule):
                 except ValueError:
                     pass
 
-        # Priority: Vacation → High humidity → Night → Normal
-        if state.is_vacation:
+        # Priority: High CO₂ → Vacation → High humidity → Night → Normal
+        if self._is_any_co2_high(co2_threshold, co2_delay):
+            fan_level = fan_co2
+            reason = f"Hoher CO₂-Wert > {co2_threshold} ppm → Stufe {fan_level}"
+        elif state.is_vacation:
             fan_level = fan_vacation
             reason = f"Urlaubsmodus → Stufe {fan_level}"
         elif self._is_humidity_high(humidity_threshold):
@@ -441,6 +457,49 @@ class FanLevelRule(Rule):
         )
 
         return results
+
+    def _is_any_co2_high(self, threshold: float, delay_minutes: int) -> bool:
+        """Check if any room has CO₂ above threshold for the required delay."""
+        rooms_config = self.config.get("rooms", {})
+        window_delay = DEFAULT_WINDOW_OPEN_DELAY_MINUTES
+
+        for room_config in rooms_config.values():
+            window_sensors = room_config.get("window_sensors") or []
+            if window_sensors and self._is_any_window_open(window_sensors, window_delay):
+                continue
+            co2_sensor = room_config.get("co2_sensor")
+            if not co2_sensor:
+                continue
+            if self._is_co2_high_persistent(co2_sensor, threshold, delay_minutes):
+                return True
+
+        return False
+
+    def _is_co2_high_persistent(
+        self, sensor_entity: str, threshold: float, delay_minutes: int
+    ) -> bool:
+        """Check if CO₂ has been above threshold for at least delay_minutes."""
+        co2_state = self.hass.states.get(sensor_entity)
+        if not co2_state:
+            self._co2_high_since[sensor_entity] = None
+            return False
+
+        try:
+            co2 = float(co2_state.state)
+        except ValueError:
+            self._co2_high_since[sensor_entity] = None
+            return False
+
+        if co2 > threshold:
+            if self._co2_high_since.get(sensor_entity) is None:
+                self._co2_high_since[sensor_entity] = datetime.now(UTC)
+            elapsed = (
+                datetime.now(UTC) - self._co2_high_since[sensor_entity]  # type: ignore[operator]
+            ).total_seconds() / 60
+            return elapsed >= delay_minutes
+        else:
+            self._co2_high_since[sensor_entity] = None
+            return False
 
     def _is_humidity_high(self, threshold: float) -> bool:
         """Check if any room has humidity above threshold (ignoring rooms with open windows)."""

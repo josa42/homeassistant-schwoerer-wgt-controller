@@ -11,6 +11,9 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_CO2_HIGH_DELAY_MINUTES,
+    CONF_CO2_THRESHOLD,
+    CONF_FAN_LEVEL_HIGH_CO2,
     CONF_FAN_LEVEL_HIGH_HUMIDITY,
     CONF_FAN_LEVEL_NIGHT,
     CONF_FAN_LEVEL_NORMAL,
@@ -26,6 +29,9 @@ from .const import (
     CONF_TEMPERATURE_VACATION,
     CONF_TEMPERATURE_WINDOW_OPEN,
     CONF_TEST_MODE,
+    DEFAULT_CO2_HIGH_DELAY_MINUTES,
+    DEFAULT_CO2_THRESHOLD,
+    DEFAULT_FAN_LEVEL_HIGH_CO2,
     DEFAULT_FAN_LEVEL_HIGH_HUMIDITY,
     DEFAULT_FAN_LEVEL_NIGHT,
     DEFAULT_FAN_LEVEL_NORMAL,
@@ -159,6 +165,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 selector.EntitySelectorConfig(
                     domain="sensor",
                     device_class="humidity",
+                )
+            )
+            schema_dict[vol.Optional(f"{room_id}_co2_sensor")] = selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="carbon_dioxide",
                 )
             )
             schema_dict[vol.Optional(f"{room_id}_is_bedroom", default=False)] = (
@@ -334,6 +346,14 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=0, max=4, step=1)
                     ),
+                    vol.Optional(
+                        CONF_FAN_LEVEL_HIGH_CO2,
+                        default=current.get(
+                            CONF_FAN_LEVEL_HIGH_CO2, DEFAULT_FAN_LEVEL_HIGH_CO2
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=0, max=4, step=1)
+                    ),
                 }
             ),
         )
@@ -382,6 +402,24 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=50, max=90, step=1, unit_of_measurement="%"
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_CO2_THRESHOLD,
+                        default=current.get(CONF_CO2_THRESHOLD, DEFAULT_CO2_THRESHOLD),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=400, max=2000, step=50, unit_of_measurement="ppm"
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_CO2_HIGH_DELAY_MINUTES,
+                        default=current.get(
+                            CONF_CO2_HIGH_DELAY_MINUTES, DEFAULT_CO2_HIGH_DELAY_MINUTES
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1, max=60, step=1, unit_of_measurement="min"
                         )
                     ),
                 }
@@ -448,6 +486,21 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                 selector.EntitySelectorConfig(
                     domain="sensor",
                     device_class="humidity",
+                )
+            )
+
+            # CO2 sensor
+            key_co2 = vol.Optional(
+                f"{room_id}_co2_sensor",
+                description={
+                    "suggested_value": room_data.get("co2_sensor"),
+                    "name": f"{room_name} - CO₂-Sensor",
+                },
+            )
+            schema_dict[key_co2] = selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="carbon_dioxide",
                 )
             )
 

@@ -118,10 +118,14 @@ class GlobalExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], Senso
         if not self.coordinator.data:
             return {}
 
-        return {
-            "reasons": self.coordinator.data.global_reasons,
+        reasons = self.coordinator.data.global_reasons
+        attrs: dict = {
+            "reasons": reasons,
             "last_results_count": len(self.coordinator.last_results),
         }
+        for i, reason in enumerate(reasons):
+            attrs[f"reason_{i + 1}"] = reason
+        return attrs
 
 
 class RoomModeSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
@@ -212,11 +216,14 @@ class RoomExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], SensorE
 
         room_state = self.coordinator.data.rooms.get(self._room_id)
         if room_state:
-            return {
+            attrs: dict = {
                 "reasons": room_state.reasons,
                 "mode": room_state.mode,
                 "target_temperature": room_state.target_temperature,
                 "auxiliary_heating_enabled": room_state.auxiliary_heating_enabled,
             }
+            for i, reason in enumerate(room_state.reasons):
+                attrs[f"reason_{i + 1}"] = reason
+            return attrs
 
         return {}

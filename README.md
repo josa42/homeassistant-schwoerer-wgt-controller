@@ -18,6 +18,7 @@ Diese Integration fungiert als "Controller" für die [schwoerer_lueftung](https:
 - 🪟 **Fenster-Erkennung** - Heizung drosseln bei offenen Fenstern
 - 🌡️ **Außentemperatur** - Wärmepumpe nur bei Bedarf freigeben
 - 💨 **Lüfterstufen** - Automatik basierend auf Luftfeuchtigkeit und Tageszeit
+- 🌫️ **Luftqualität** - Lüftung bei hohem CO₂-Gehalt erhöhen
 
 ## Entscheidungslogik
 
@@ -56,6 +57,7 @@ Der Controller wertet bei jedem Update-Zyklus 7 Regeln aus und führt die Aktion
 - Die [schwoerer_lueftung](https://github.com/josa42/homeassistant-schwoerer-lueftung) Integration muss installiert und konfiguriert sein
 - Optional: Fenstersensoren (z.B. Zigbee) für die Fenster-Erkennung
 - Optional: Luftfeuchtigkeitssensor für automatische Lüfterstufen-Anpassung
+- Optional: CO₂-Sensor pro Raum für Luftqualitäts-basierte Lüftersteuerung
 
 ### Setup
 
@@ -90,11 +92,14 @@ Der Controller wertet bei jedem Update-Zyklus 7 Regeln aus und führt die Aktion
 - **Nacht**: Stufe 1
 - **Urlaub**: Stufe 1  
 - **Hohe Feuchtigkeit**: Stufe 3 (wenn Luftfeuchtigkeit in einem Raum > Schwellwert)
+- **Hoher CO₂-Wert**: Stufe 3 (wenn CO₂ in einem Raum > Schwellwert für konfigurierte Zeit)
 
 #### Schwellwerte
 - **Außentemperatur für Heizfreigabe**: 16°C (Wärmepumpe nur darunter)
 - **Außentemperatur für Zusatzheizer**: 10°C (Zusatzheizer nur darunter)
 - **Luftfeuchtigkeit**: 70% (Schwelle für Lüfterstufe 3)
+- **CO₂-Schwellwert**: 1000 ppm (Schwelle für erhöhte Lüfterstufe)
+- **CO₂-Verzögerung**: 5 Min (wie lange CO₂ überschritten sein muss)
 
 #### Räume
 Pro Raum konfigurierbar:
@@ -103,6 +108,9 @@ Pro Raum konfigurierbar:
   - Luftfeuchtigkeit wird ignoriert bei offenen Fenstern
 - **Luftfeuchtigkeitssensor**: Optional pro Raum (z.B. Badezimmer)
   - Wenn **ein** Raum > 70% → Lüfterstufe 3
+- **CO₂-Sensor**: Optional pro Raum — erhöht Lüfterstufe bei schlechter Luftqualität
+  - Wenn **ein** Raum > 1000 ppm für > 5 Min → Lüfterstufe 3
+  - CO₂ wird bei offenen Fenstern ignoriert
 - **Ist Schlafraum**: Zusatzheizer nachts deaktiviert
 
 ## Entities
@@ -216,10 +224,13 @@ automation:
 | Nacht | Stufe 1 |
 | Urlaub | Stufe 1 |
 | Hohe Feuchtigkeit | Stufe 3 |
+| Hoher CO₂-Wert | Stufe 3 |
 | **Schwellwerte** | |
 | Außentemperatur für Heizfreigabe | 16°C |
 | Außentemperatur für Zusatzheizer | 10°C |
 | Luftfeuchtigkeit | 70% |
+| CO₂-Schwellwert | 1000 ppm |
+| CO₂-Verzögerung | 5 Min |
 
 ## Features
 
@@ -230,7 +241,8 @@ automation:
 ✅ **Integrierte Steuerung**: Urlaubsmodus, Heizsperre, Lüfterstufen als Teil der Integration  
 ✅ **Mehrere Fenstersensoren**: Beliebig viele Sensoren pro Raum konfigurierbar  
 ✅ **Raum-spezifische Sensoren**: Feuchtigkeit und Fenster pro Raum  
-✅ **Intelligente Lüftung**: Ignoriert Feuchtigkeit bei offenen Fenstern  
+✅ **Intelligente Lüftung**: Ignoriert Feuchtigkeit bei offenen Fenstern
+✅ **CO₂-Luftqualität**: Lüftung automatisch erhöhen bei schlechter Luftqualität  
 ✅ **Geräte-Integration**: Alle Entities am WGT-Gerät bzw. Raum-Geräten angehängt  
 ✅ **Mehrsprachig**: Deutsche und englische UI-Übersetzungen  
 

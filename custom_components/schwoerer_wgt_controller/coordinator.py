@@ -92,6 +92,10 @@ class WGTControllerCoordinator(DataUpdateCoordinator[ControllerState]):
             if humidity_sensor:
                 entities_to_watch.append(humidity_sensor)
 
+            co2_sensor = room_config.get("co2_sensor")
+            if co2_sensor:
+                entities_to_watch.append(co2_sensor)
+
         # Register state change listener
         if entities_to_watch:
             self._unsub_listeners.append(

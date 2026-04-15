@@ -468,6 +468,154 @@ class TestFanLevelRule:
 
         assert state.fan_level == 2
 
+    def test_high_co2_elevates_fan(self):
+        """Test that sustained high CO2 elevates the fan level."""
+        sensor = "sensor.room_1_co2"
+        coordinator = MagicMock()
+        coordinator.config = {
+            "fan_level_normal": 2,
+            "fan_level_high_co2": 3,
+            "co2_threshold": 1000,
+            "co2_high_delay_minutes": 5,
+            "rooms": {"room_1": {"co2_sensor": sensor}},
+        }
+        coordinator.fan_level_override_select = None
+        coordinator.hass.states.get.return_value = MagicMock(state="1200")
+
+        rule = FanLevelRule(coordinator)
+        # Seed the onset time so the delay has already elapsed
+        rule._co2_high_since[sensor] = datetime.now(UTC) - timedelta(minutes=10)
+
+        state = ControllerState()
+        rule.evaluate(state)
+
+        assert state.fan_level == 3
+
+    def test_co2_below_threshold_no_elevation(self):
+        """Test that CO2 below threshold does not elevate fan."""
+        sensor = "sensor.room_1_co2"
+        coordinator = MagicMock()
+        coordinator.config = {
+            "fan_level_normal": 2,
+            "fan_level_high_co2": 3,
+            "co2_threshold": 1000,
+            "co2_high_delay_minutes": 5,
+            "rooms": {"room_1": {"co2_sensor": sensor}},
+        }
+        coordinator.fan_level_override_select = None
+        coordinator.hass.states.get.return_value = MagicMock(state="800")
+
+        rule = FanLevelRule(coordinator)
+        state = ControllerState()
+        rule.evaluate(state)
+
+        assert state.fan_level == 2
+
+    def test_co2_not_elevated_before_delay(self):
+        """Test that CO2 above threshold but within delay period does not elevate fan."""
+        sensor = "sensor.room_1_co2"
+        coordinator = MagicMock()
+        coordinator.config = {
+            "fan_level_normal": 2,
+            "fan_level_high_co2": 3,
+            "co2_threshold": 1000,
+            "co2_high_delay_minutes": 5,
+            "rooms": {"room_1": {"co2_sensor": sensor}},
+        }
+        coordinator.fan_level_override_select = None
+        coordinator.hass.states.get.return_value = MagicMock(state="1200")
+
+        rule = FanLevelRule(coordinator)
+        # Set onset to only 1 minute ago — delay of 5 min not elapsed
+        rule._co2_high_since[sensor] = datetime.now(UTC) - timedelta(minutes=1)
+
+        state = ControllerState()
+        rule.evaluate(state)
+
+        assert state.fan_level == 2
+
+    def test_co2_ignored_when_window_open(self):
+        """Test that high CO2 is ignored when a window is open."""
+        co2_sensor = "sensor.room_1_co2"
+        window = "binary_sensor.window_1"
+        now = datetime.now(UTC)
+        window_state = MagicMock()
+        window_state.state = "on"
+        window_state.last_changed = now - timedelta(minutes=5)
+
+        coordinator = MagicMock()
+        coordinator.config = {
+            "fan_level_normal": 2,
+            "fan_level_high_co2": 3,
+            "co2_threshold": 1000,
+            "co2_high_delay_minutes": 5,
+            "rooms": {"room_1": {"co2_sensor": co2_sensor, "window_sensors": [window]}},
+        }
+        coordinator.fan_level_override_select = None
+
+        def get_state(entity_id):
+            if entity_id == co2_sensor:
+                return MagicMock(state="1500")
+            if entity_id == window:
+                return window_state
+            return None
+
+        coordinator.hass.states.get.side_effect = get_state
+
+        rule = FanLevelRule(coordinator)
+        rule._co2_high_since[co2_sensor] = now - timedelta(minutes=10)
+
+        state = ControllerState()
+        rule.evaluate(state)
+
+        assert state.fan_level == 2
+
+    def test_co2_takes_priority_over_vacation(self):
+        """Test that high CO2 overrides vacation fan level."""
+        sensor = "sensor.room_1_co2"
+        coordinator = MagicMock()
+        coordinator.config = {
+            "fan_level_normal": 2,
+            "fan_level_vacation": 1,
+            "fan_level_high_co2": 3,
+            "co2_threshold": 1000,
+            "co2_high_delay_minutes": 5,
+            "rooms": {"room_1": {"co2_sensor": sensor}},
+        }
+        coordinator.fan_level_override_select = None
+        coordinator.hass.states.get.return_value = MagicMock(state="1200")
+
+        rule = FanLevelRule(coordinator)
+        rule._co2_high_since[sensor] = datetime.now(UTC) - timedelta(minutes=10)
+
+        state = ControllerState(is_vacation=True)
+        rule.evaluate(state)
+
+        assert state.fan_level == 3
+
+    def test_co2_resets_when_drops_below_threshold(self):
+        """Test that the onset timer clears when CO2 drops below threshold."""
+        sensor = "sensor.room_1_co2"
+        coordinator = MagicMock()
+        coordinator.config = {
+            "fan_level_normal": 2,
+            "fan_level_high_co2": 3,
+            "co2_threshold": 1000,
+            "co2_high_delay_minutes": 5,
+            "rooms": {"room_1": {"co2_sensor": sensor}},
+        }
+        coordinator.fan_level_override_select = None
+        coordinator.hass.states.get.return_value = MagicMock(state="800")
+
+        rule = FanLevelRule(coordinator)
+        rule._co2_high_since[sensor] = datetime.now(UTC) - timedelta(minutes=10)
+
+        state = ControllerState()
+        rule.evaluate(state)
+
+        assert rule._co2_high_since[sensor] is None
+        assert state.fan_level == 2
+
 
 class TestAuxiliaryHeatingRule:
     """Test AuxiliaryHeatingRule."""
