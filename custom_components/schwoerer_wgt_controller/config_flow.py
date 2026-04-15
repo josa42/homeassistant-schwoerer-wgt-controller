@@ -431,8 +431,11 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
     ) -> config_entries.ConfigFlowResult:
         """Configure room settings."""
         if user_input is not None:
-            # Parse room configurations from user input
-            rooms_config = self.config_entry.data.get(CONF_ROOMS, {})
+            # Start from merged data+options so previous option-layer edits are preserved
+            rooms_config = {
+                **self.config_entry.data.get(CONF_ROOMS, {}),
+                **self.config_entry.options.get(CONF_ROOMS, {}),
+            }
 
             for key, value in user_input.items():
                 if key.startswith("room_") and "_" in key[5:]:
