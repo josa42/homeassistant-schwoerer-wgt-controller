@@ -23,6 +23,7 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = [
         GlobalStatusSensor(coordinator),
+        GlobalModeSensor(coordinator),
         GlobalExplanationSensor(coordinator),
     ]
 
@@ -92,6 +93,33 @@ class GlobalStatusSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEnti
             "outdoor_temperature": data.outdoor_temperature,
             "fan_level": data.fan_level,
         }
+
+
+class GlobalModeSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):
+    """Sensor showing the current global operating mode."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "controller_mode"
+    _attr_icon = "mdi:home-clock"
+
+    def __init__(self, coordinator: WGTControllerCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_controller_mode"
+        self._attr_device_info = _get_device_info(coordinator)
+
+    @property
+    def native_value(self) -> str:
+        """Return the current operating mode."""
+        if not self.coordinator.data:
+            return MODE_NORMAL
+
+        data = self.coordinator.data
+        if data.is_vacation:
+            return MODE_VACATION
+        if data.is_night:
+            return MODE_NIGHT
+        return MODE_NORMAL
 
 
 class GlobalExplanationSensor(CoordinatorEntity[WGTControllerCoordinator], SensorEntity):

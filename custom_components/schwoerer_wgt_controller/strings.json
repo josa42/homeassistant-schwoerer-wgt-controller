@@ -113,6 +113,14 @@
   },
   "entity": {
     "sensor": {
+      "controller_mode": {
+        "name": "Controller Modus",
+        "state": {
+          "normal": "Normal",
+          "night": "Nacht",
+          "vacation": "Urlaub"
+        }
+      },
       "controller_status": {
         "name": "Controller Status",
         "state": {
