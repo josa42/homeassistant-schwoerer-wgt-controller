@@ -152,7 +152,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema_dict: dict[Any, Any] = {}
         for room in self._discovered_rooms:
             room_id = f"room_{room['number']}"
-            room_name = room["name"]
 
             schema_dict[vol.Optional(f"{room_id}_window_sensors")] = selector.EntitySelector(
                 selector.EntitySelectorConfig(

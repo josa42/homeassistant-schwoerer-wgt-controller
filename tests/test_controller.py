@@ -866,6 +866,6 @@ class TestRoomTemperatureRuleEdgeCases:
             rooms={"room_1": RoomState("room_1", "Room 1", "climate.room1")},
         )
 
-        results = rule.evaluate(state)
+        rule.evaluate(state)
 
         assert state.rooms["room_1"].mode == "normal"
