@@ -7,6 +7,10 @@
         "data": {
           "test_mode": "Testmodus (nur Logging, keine Aktionen)"
         }
+      },
+      "rooms": {
+        "title": "Raumkonfiguration",
+        "description": "Konfiguriere Fenstersensoren, Luftfeuchtigkeitssensoren und Raumtyp pro Raum."
       }
     },
     "error": {

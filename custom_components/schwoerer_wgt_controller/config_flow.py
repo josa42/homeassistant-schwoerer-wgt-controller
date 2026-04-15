@@ -54,6 +54,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._discovered_rooms: list[dict[str, Any]] = []
+        self._data: dict[str, Any] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -92,7 +93,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         ]
 
         if user_input is not None:
-            # Build rooms config
             rooms_config = {}
             for room in self._discovered_rooms:
                 room_id = f"room_{room['number']}"
@@ -101,17 +101,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "climate_entity_id": room["climate_entity_id"],
                 }
 
-            data = {
+            self._data = {
                 CONF_TEST_MODE: user_input.get(CONF_TEST_MODE, False),
                 CONF_ROOMS: rooms_config,
             }
 
-            return self.async_create_entry(
-                title="Schwörer WGT Controller",
-                data=data,
-            )
+            return await self.async_step_rooms()
 
-        # Show confirmation form with test mode option
         room_list = ", ".join([r["name"] for r in self._discovered_rooms])
 
         return self.async_show_form(
@@ -122,6 +118,56 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={"discovered_rooms": room_list},
+        )
+
+    async def async_step_rooms(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle the room configuration step."""
+        if user_input is not None:
+            rooms_config = self._data.get(CONF_ROOMS, {})
+
+            for key, value in user_input.items():
+                if key.startswith("room_") and "_" in key[5:]:
+                    parts = key.split("_", 2)
+                    room_id = f"room_{parts[1]}"
+                    setting = "_".join(parts[2:])
+                    if room_id not in rooms_config:
+                        rooms_config[room_id] = {}
+                    rooms_config[room_id][setting] = value
+
+            self._data[CONF_ROOMS] = rooms_config
+
+            return self.async_create_entry(
+                title="Schwörer WGT Controller",
+                data=self._data,
+            )
+
+        schema_dict: dict[Any, Any] = {}
+        for room in self._discovered_rooms:
+            room_id = f"room_{room['number']}"
+            room_name = room["name"]
+
+            schema_dict[vol.Optional(f"{room_id}_window_sensors")] = selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain="binary_sensor",
+                    device_class=["window", "door", "opening"],
+                    multiple=True,
+                )
+            )
+            schema_dict[vol.Optional(f"{room_id}_humidity_sensor")] = selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="humidity",
+                )
+            )
+            schema_dict[vol.Optional(f"{room_id}_is_bedroom", default=False)] = (
+                selector.BooleanSelector()
+            )
+
+        return self.async_show_form(
+            step_id="rooms",
+            data_schema=vol.Schema(schema_dict),
         )
 
     @staticmethod

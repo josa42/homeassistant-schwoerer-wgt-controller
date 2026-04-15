@@ -112,6 +112,27 @@ class Rule(ABC):
     def evaluate(self, state: ControllerState) -> list[RuleResult]:
         """Evaluate the rule and return any actions to take."""
 
+    def _is_any_window_open(self, sensor_entities: list[str], delay_minutes: int) -> bool:
+        """Check if any window sensor has been open for the required delay."""
+        for sensor_entity in sensor_entities:
+            if self._is_window_open(sensor_entity, delay_minutes):
+                return True
+        return False
+
+    def _is_window_open(self, sensor_entity: str, delay_minutes: int) -> bool:
+        """Check if window sensor has been open for the required delay."""
+        sensor_state = self.hass.states.get(sensor_entity)
+        if not sensor_state or sensor_state.state != "on":
+            return False
+
+        last_changed = sensor_state.last_changed
+        if last_changed:
+            now = datetime.now(UTC)
+            open_duration = (now - last_changed).total_seconds() / 60
+            return open_duration >= delay_minutes
+
+        return False
+
 
 class HeatingLockRule(Rule):
     """Check if heating is manually locked."""
@@ -286,29 +307,6 @@ class RoomTemperatureRule(Rule):
             )
 
         return results
-
-    def _is_any_window_open(self, sensor_entities: list[str], delay_minutes: int) -> bool:
-        """Check if any window sensor has been open for the required delay."""
-        for sensor_entity in sensor_entities:
-            if self._is_window_open(sensor_entity, delay_minutes):
-                return True
-        return False
-
-    def _is_window_open(self, sensor_entity: str, delay_minutes: int) -> bool:
-        """Check if window sensor has been open for the required delay."""
-        sensor_state = self.hass.states.get(sensor_entity)
-        if not sensor_state or sensor_state.state != "on":
-            return False
-
-        # Check how long the window has been open
-        last_changed = sensor_state.last_changed
-        if last_changed:
-
-            now = datetime.now(UTC)
-            open_duration = (now - last_changed).total_seconds() / 60
-            return open_duration >= delay_minutes
-
-        return False
 
 
 class AuxiliaryHeatingRule(Rule):
