@@ -7,6 +7,16 @@
         "data": {
           "test_mode": "Testmodus (nur Logging, keine Aktionen)"
         }
+      },
+      "rooms": {
+        "title": "Raumkonfiguration",
+        "description": "{room_name} ({room_number}/{total_rooms})",
+        "data": {
+          "window_sensors": "Fenstersensoren",
+          "humidity_sensor": "Luftfeuchtigkeitssensor",
+          "co2_sensor": "CO₂-Sensor",
+          "is_bedroom": "Ist Schlafraum"
+        }
       }
     },
     "error": {
@@ -53,7 +63,8 @@
           "fan_level_normal": "Normale Lüfterstufe",
           "fan_level_night": "Nacht-Lüfterstufe",
           "fan_level_vacation": "Urlaubs-Lüfterstufe",
-          "fan_level_high_humidity": "Lüfterstufe bei hoher Feuchtigkeit"
+          "fan_level_high_humidity": "Lüfterstufe bei hoher Feuchtigkeit",
+          "fan_level_high_co2": "Lüfterstufe bei hohem CO₂"
         }
       },
       "thresholds": {
@@ -62,43 +73,33 @@
           "outdoor_temp_heating_threshold": "Außentemperatur für Heizfreigabe",
           "outdoor_temp_auxiliary_heating_threshold": "Außentemperatur für Zusatzheizer",
           "humidity_threshold": "Luftfeuchtigkeits-Schwellwert",
+          "co2_threshold": "CO₂-Schwellwert",
+          "co2_high_delay_minutes": "Verzögerung CO₂-Erkennung (Minuten)",
           "humidity_sensor_entity": "Luftfeuchtigkeitssensor (optional)"
         }
       },
       "rooms": {
         "title": "Raumkonfiguration",
-        "description": "Konfiguriere Fenstersensoren, Luftfeuchtigkeitssensoren und Raumtyp pro Raum.",
+        "description": "{room_name} ({room_number}/{total_rooms})",
         "data": {
-          "room_1_window_sensors": "Raum 1 - Fenstersensoren",
-          "room_1_humidity_sensor": "Raum 1 - Luftfeuchtigkeitssensor",
-          "room_1_is_bedroom": "Raum 1 - Ist Schlafraum",
-          "room_2_window_sensors": "Raum 2 - Fenstersensoren",
-          "room_2_humidity_sensor": "Raum 2 - Luftfeuchtigkeitssensor",
-          "room_2_is_bedroom": "Raum 2 - Ist Schlafraum",
-          "room_3_window_sensors": "Raum 3 - Fenstersensoren",
-          "room_3_humidity_sensor": "Raum 3 - Luftfeuchtigkeitssensor",
-          "room_3_is_bedroom": "Raum 3 - Ist Schlafraum",
-          "room_4_window_sensors": "Raum 4 - Fenstersensoren",
-          "room_4_humidity_sensor": "Raum 4 - Luftfeuchtigkeitssensor",
-          "room_4_is_bedroom": "Raum 4 - Ist Schlafraum",
-          "room_5_window_sensors": "Raum 5 - Fenstersensoren",
-          "room_5_humidity_sensor": "Raum 5 - Luftfeuchtigkeitssensor",
-          "room_5_is_bedroom": "Raum 5 - Ist Schlafraum",
-          "room_6_window_sensors": "Raum 6 - Fenstersensoren",
-          "room_6_humidity_sensor": "Raum 6 - Luftfeuchtigkeitssensor",
-          "room_6_is_bedroom": "Raum 6 - Ist Schlafraum",
-          "room_7_window_sensors": "Raum 7 - Fenstersensoren",
-          "room_7_humidity_sensor": "Raum 7 - Luftfeuchtigkeitssensor",
-          "room_7_is_bedroom": "Raum 7 - Ist Schlafraum",
-          "room_8_window_sensors": "Raum 8 - Fenstersensoren",
-          "room_8_humidity_sensor": "Raum 8 - Luftfeuchtigkeitssensor",
-          "room_8_is_bedroom": "Raum 8 - Ist Schlafraum"
+          "window_sensors": "Fenstersensoren",
+          "humidity_sensor": "Luftfeuchtigkeitssensor",
+          "co2_sensor": "CO₂-Sensor",
+          "is_bedroom": "Ist Schlafraum"
         }
       }
     }
   },
   "entity": {
     "sensor": {
+      "controller_mode": {
+        "name": "Controller Modus",
+        "state": {
+          "normal": "Normal",
+          "night": "Nacht",
+          "vacation": "Urlaub"
+        }
+      },
       "controller_status": {
         "name": "Controller Status",
         "state": {
