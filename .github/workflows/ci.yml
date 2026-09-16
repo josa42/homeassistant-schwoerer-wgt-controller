@@ -9,54 +9,8 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-
-      - name: Lint with ruff
-        run: |
-          ruff check custom_components/ tests/
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements_test.txt
-
-      - name: Run tests with pytest
-        run: |
-          pytest tests/ -v --tb=short
-
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: HACS validation
-        uses: hacs/action@main
-        with:
-          category: integration
-          ignore: topics description brands
-
-      - name: Hassfest validation
-        uses: home-assistant/actions/hassfest@master
+  ci:
+    uses: josa42/gha-workflows/.github/workflows/ha-integration.yml@main
+    with:
+      python_version: "3.12"
+      hacs_ignore: topics description brands
